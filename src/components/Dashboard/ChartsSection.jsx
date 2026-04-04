@@ -1,32 +1,32 @@
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend
 } from 'recharts';
-import { yearlyComparison } from '../../data/placementsData';
-import { placementsData } from '../../data/placementsData';
 
-export default function ChartsSection() {
-  const monthly = placementsData[2025].monthlyTrend;
+export default function ChartsSection({ yearVsCompanies = [], yearWisePlacements = [] }) {
+  const yearCompanies = yearVsCompanies.map((item) => ({
+    year: String(item.year),
+    companiesVisited: item.companies,
+  }));
+
+  const placements = yearWisePlacements.map((item) => ({
+    year: String(item.year),
+    placed: item.students,
+  }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {/* Monthly trend */}
+      {/* Year vs companies visited */}
       <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Monthly Placement Trend (2025)</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-4">Year vs Companies Visited</h3>
         <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={monthly}>
-            <defs>
-              <linearGradient id="colorPlaced" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-              </linearGradient>
-            </defs>
+          <BarChart data={yearCompanies}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+            <XAxis dataKey="year" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip />
-            <Area type="monotone" dataKey="placed" stroke="#6366f1" fill="url(#colorPlaced)" strokeWidth={2} />
-          </AreaChart>
+            <Bar dataKey="companiesVisited" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Companies Visited" />
+          </BarChart>
         </ResponsiveContainer>
       </div>
 
@@ -34,7 +34,7 @@ export default function ChartsSection() {
       <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
         <h3 className="text-sm font-semibold text-gray-700 mb-4">Year-wise Placement Comparison</h3>
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={yearlyComparison}>
+          <BarChart data={placements}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="year" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} />

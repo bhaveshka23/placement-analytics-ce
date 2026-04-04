@@ -1,21 +1,97 @@
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/Layout/DashboardLayout';
-import { placementsData } from '../../data/placementsData';
-import { studentsData } from '../../data/studentsData';
 import { Users, Building2, Award, TrendingUp } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
+  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import { getPlacementYears, getPlacementYearDetail } from '../../services/placementsApi';
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#14b8a6'];
 
 export default function PlacementYear() {
   const { year } = useParams();
-  const yr = parseInt(year);
-  const data = placementsData[yr];
+  const navigate = useNavigate();
+  const [years, setYears] = useState([]);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  if (!data) {
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadYears() {
+      try {
+        const yearsResponse = await getPlacementYears();
+        if (mounted) {
+          setYears(yearsResponse.years || []);
+        }
+      } catch {
+        if (mounted) {
+          setYears([]);
+        }
+      }
+    }
+
+    loadYears();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadYearData() {
+      try {
+        setLoading(true);
+        setError('');
+        const response = await getPlacementYearDetail(year);
+        if (mounted) {
+          setData(response);
+          if ((response.years || []).length > 0) {
+            setYears(response.years);
+          }
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err.message || 'Unable to fetch placement year data.');
+          setData(null);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    if (year) {
+      loadYearData();
+    }
+
+    return () => {
+      mounted = false;
+    };
+  }, [year]);
+
+  useEffect(() => {
+    if (years.length > 0 && year && !years.map(String).includes(String(year))) {
+      navigate(`/placements/${years[0]}`, { replace: true });
+    }
+  }, [years, year, navigate]);
+
+  const packageDistribution = data?.package_distribution || [];
+  const topCompanies = data?.top_companies || [];
+  const records = data?.records || [];
+
+  const kpis = [
+    { label: 'Students Placed', value: data?.summary?.students_placed ?? 0, icon: Users, color: 'bg-indigo-50 text-indigo-600' },
+    { label: 'Avg Package', value: `₹${data?.summary?.avg_package ?? 0} LPA`, icon: Award, color: 'bg-amber-50 text-amber-600' },
+    { label: 'Highest Package', value: `₹${data?.summary?.highest_package ?? 0} LPA`, icon: TrendingUp, color: 'bg-green-50 text-green-600' },
+    { label: 'Companies Visited', value: data?.summary?.companies ?? 0, icon: Building2, color: 'bg-purple-50 text-purple-600' },
+  ];
+
+  if (!loading && !data) {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center h-64 text-gray-400">
@@ -26,15 +102,6 @@ export default function PlacementYear() {
     );
   }
 
-  const yearStudents = studentsData.filter(s => s.year === yr);
-
-  const kpis = [
-    { label: 'Students Placed', value: data.totalPlaced, icon: Users, color: 'bg-indigo-50 text-indigo-600' },
-    { label: 'Placement Rate', value: `${data.placementRate}%`, icon: TrendingUp, color: 'bg-green-50 text-green-600' },
-    { label: 'Avg Package', value: `₹${data.avgPackage} LPA`, icon: Award, color: 'bg-amber-50 text-amber-600' },
-    { label: 'Companies Visited', value: data.companiesVisited, icon: Building2, color: 'bg-purple-50 text-purple-600' },
-  ];
-
   return (
     <DashboardLayout>
       <div className="space-y-5">
@@ -44,17 +111,29 @@ export default function PlacementYear() {
             <p className="text-sm text-gray-500 mt-0.5">Detailed placement data for batch {year}</p>
           </div>
           <div className="flex gap-2">
-            {[2025, 2024, 2023].map(y => (
+            {years.map(y => (
               <Link
                 key={y}
                 to={`/placements/${y}`}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${yr === y ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${String(year) === String(y) ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
               >
                 {y}
               </Link>
             ))}
           </div>
         </div>
+
+        {loading && (
+          <div className="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-700">
+            Loading placement year data...
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {kpis.map(k => (
@@ -68,32 +147,17 @@ export default function PlacementYear() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4">Monthly Placement Trend</h3>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={data.monthlyTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Bar dataKey="placed" fill="#6366f1" radius={[4, 4, 0, 0]} name="Placed" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4">Package Distribution</h3>
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={data.packageDistribution} dataKey="count" nameKey="range" cx="50%" cy="50%" outerRadius={80} innerRadius={40} paddingAngle={3}>
-                  {data.packageDistribution.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Pie>
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">Package Distribution</h3>
+          <ResponsiveContainer width="100%" height={360}>
+            <PieChart>
+              <Pie data={packageDistribution} dataKey="count" nameKey="range" cx="50%" cy="50%" outerRadius={130} innerRadius={70} paddingAngle={3}>
+                {packageDistribution.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+              </Pie>
+              <Tooltip />
+              <Legend wrapperStyle={{ fontSize: 13 }} />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
 
         {/* Top Companies */}
@@ -111,9 +175,9 @@ export default function PlacementYear() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {data.topCompanies.map((c, i) => (
+                {topCompanies.map((c, i) => (
                   <tr key={i} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 font-medium text-gray-800">{c.name}</td>
+                    <td className="px-5 py-3 font-medium text-gray-800">{c.name || c.company__name}</td>
                     <td className="px-5 py-3 text-gray-600">{c.placed}</td>
                     <td className="px-5 py-3">
                       <span className="font-semibold text-indigo-600">₹{c.avg}</span>
@@ -126,7 +190,7 @@ export default function PlacementYear() {
         </div>
 
         {/* Students */}
-        {yearStudents.length > 0 && (
+        {records.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100">
               <h3 className="text-sm font-semibold text-gray-700">Placed Students – {year}</h3>
@@ -139,17 +203,17 @@ export default function PlacementYear() {
                     <th className="px-5 py-3 text-left">Company</th>
                     <th className="px-5 py-3 text-left">Package</th>
                     <th className="px-5 py-3 text-left">Location</th>
-                    <th className="px-5 py-3 text-left">CGPA</th>
+                    
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {yearStudents.map(s => (
+                  {records.map(s => (
                     <tr key={s.id} className="hover:bg-gray-50">
                       <td className="px-5 py-3 font-medium text-gray-800">{s.name}</td>
                       <td className="px-5 py-3 text-gray-600">{s.company}</td>
                       <td className="px-5 py-3 font-semibold text-green-600">₹{s.package} LPA</td>
                       <td className="px-5 py-3 text-gray-500">{s.location}</td>
-                      <td className="px-5 py-3 text-gray-600">{s.cgpa}</td>
+                     
                     </tr>
                   ))}
                 </tbody>

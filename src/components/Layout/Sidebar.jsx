@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, ChevronDown, ChevronRight,
   Briefcase, GraduationCap, Activity, BarChart2, Settings, Building2
 } from 'lucide-react';
+import { getPlacementYears } from '../../services/placementsApi';
 
 const years = [2025, 2024, 2023];
 
@@ -50,6 +51,29 @@ function DropdownSection({ label, icon: Icon, children, defaultOpen = false }) {
 
 export default function Sidebar({ isOpen }) {
   const location = useLocation();
+  const [placementYears, setPlacementYears] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadPlacementYears() {
+      try {
+        const response = await getPlacementYears();
+        if (mounted) {
+          setPlacementYears(response.years || []);
+        }
+      } catch {
+        if (mounted) {
+          setPlacementYears([]);
+        }
+      }
+    }
+
+    loadPlacementYears();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <aside
@@ -78,19 +102,19 @@ export default function Sidebar({ isOpen }) {
           <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Placements</p>
           <DropdownSection label="Placements" icon={Briefcase} defaultOpen={location.pathname.startsWith('/placements')}>
             <NavItem to="/placements/overview">Overview</NavItem>
-            {years.map(y => <NavItem key={y} to={`/placements/${y}`}>{y}</NavItem>)}
+            {placementYears.map(y => <NavItem key={y} to={`/placements/${y}`}>{y}</NavItem>)}
             <NavItem to="/placements/companies">Companies</NavItem>
-            <NavItem to="/placements/students">Students</NavItem>
+            
           </DropdownSection>
         </div>
 
-        <div className="pt-2">
+        {/* <div className="pt-2">
           <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Internships</p>
           <DropdownSection label="Internships" icon={Building2} defaultOpen={location.pathname.startsWith('/internships')}>
             <NavItem to="/internships/overview">Overview</NavItem>
             {years.map(y => <NavItem key={y} to={`/internships/${y}`}>{y}</NavItem>)}
           </DropdownSection>
-        </div>
+        </div> */}
 
         <div className="pt-2">
           <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Activities</p>

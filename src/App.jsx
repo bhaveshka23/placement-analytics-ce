@@ -1,10 +1,10 @@
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import PlacementOverview from './pages/placements/PlacementOverview';
 import PlacementYear from './pages/placements/PlacementYear';
 import Companies from './pages/placements/Companies';
-import Students from './pages/placements/Students';
 import InternshipOverview from './pages/internships/InternshipOverview';
 import InternshipYear from './pages/internships/InternshipYear';
 import ActivitiesOverview from './pages/activities/ActivitiesOverview';
@@ -12,17 +12,17 @@ import ActivitiesYear from './pages/activities/ActivitiesYear';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={ <Dashboard />}/>
 
         {/* Placements */}
         <Route path="/placements/overview" element={<PlacementOverview />} />
         <Route path="/placements/companies" element={<Companies />} />
-        <Route path="/placements/students" element={<Students />} />
         <Route path="/placements/:year" element={<PlacementYear />} />
 
         {/* Internships */}

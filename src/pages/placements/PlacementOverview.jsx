@@ -1,107 +1,72 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DashboardLayout from '../../components/Layout/DashboardLayout';
-import { studentsData } from '../../data/studentsData';
 import { TrendingUp, Users, Building2, Award, Filter, X } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from 'recharts';
+import { getPlacementOverview } from '../../services/placementsApi';
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#14b8a6', '#8b5cf6', '#f97316'];
 
-const ALL_COMPANIES = [...new Set(studentsData.map(s => s.company))].sort();
-const ALL_SKILLS    = [...new Set(studentsData.flatMap(s => s.skills))].sort();
-const ALL_LOCATIONS = [...new Set(studentsData.map(s => s.location))].sort();
-
-const PACKAGE_RANGES = [
-  { label: 'All',        min: 0,  max: Infinity },
-  { label: '< 5 LPA',   min: 0,  max: 5 },
-  { label: '5–10 LPA',  min: 5,  max: 10 },
-  { label: '10–20 LPA', min: 10, max: 20 },
-  { label: '20+ LPA',   min: 20, max: Infinity },
-];
-
-function getPackageBucket(pkg) {
-  if (pkg < 5)  return '< 5 LPA';
-  if (pkg < 8)  return '5–8 LPA';
-  if (pkg < 12) return '8–12 LPA';
-  if (pkg < 20) return '12–20 LPA';
-  return '20+ LPA';
-}
-
 export default function PlacementOverview() {
   const [filters, setFilters] = useState({
-    year: 'All', company: 'All', packageRange: 'All', skill: 'All', location: 'All',
+    year: 'All', company: 'All', packageRange: 'All', location: 'All',
   });
+  const [overviewData, setOverviewData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const filtered = useMemo(() => {
-    const pkgRange = PACKAGE_RANGES.find(r => r.label === filters.packageRange) || PACKAGE_RANGES[0];
-    return studentsData.filter(s => {
-      if (filters.year !== 'All' && s.year !== parseInt(filters.year)) return false;
-      if (filters.company !== 'All' && s.company !== filters.company) return false;
-      if (filters.skill !== 'All' && !s.skills.includes(filters.skill)) return false;
-      if (filters.location !== 'All' && s.location !== filters.location) return false;
-      if (s.package < pkgRange.min || s.package >= pkgRange.max) return false;
-      return true;
-    });
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadOverview() {
+      try {
+        setLoading(true);
+        setError('');
+        const data = await getPlacementOverview(filters);
+        if (isMounted) {
+          setOverviewData(data);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.message || 'Unable to load placement overview data.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadOverview();
+
+    return () => {
+      isMounted = false;
+    };
   }, [filters]);
 
-  const totalPlaced     = filtered.length;
-  const avgPackage      = totalPlaced ? (filtered.reduce((s, r) => s + r.package, 0) / totalPlaced).toFixed(1) : 0;
-  const highestPkg      = totalPlaced ? Math.max(...filtered.map(s => s.package)) : 0;
-  const uniqueCompanies = [...new Set(filtered.map(s => s.company))].length;
+  const records = overviewData?.records || [];
+  const summary = overviewData?.summary || {};
+  const byYear = overviewData?.placements_by_year || [];
+  const pkgDist = overviewData?.package_distribution || [];
+  const byLocation = overviewData?.placements_by_location || [];
+  const filterOptions = overviewData?.filters || {};
 
-  const byYear = useMemo(() => {
-    const map = {};
-    filtered.forEach(s => { map[s.year] = (map[s.year] || 0) + 1; });
-    return [2023, 2024, 2025].map(y => ({ year: String(y), placed: map[y] || 0 }));
-  }, [filtered]);
-
-  const pkgDist = useMemo(() => {
-    const buckets = {};
-    filtered.forEach(s => { const b = getPackageBucket(s.package); buckets[b] = (buckets[b] || 0) + 1; });
-    return Object.entries(buckets).map(([range, count]) => ({ range, count }));
-  }, [filtered]);
-
-  const byCompany = useMemo(() => {
-    const map = {};
-    filtered.forEach(s => { map[s.company] = (map[s.company] || 0) + 1; });
-    return Object.entries(map).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 8);
-  }, [filtered]);
-
-  const avgByCompany = useMemo(() => {
-    const map = {};
-    filtered.forEach(s => {
-      if (!map[s.company]) map[s.company] = { total: 0, count: 0 };
-      map[s.company].total += s.package;
-      map[s.company].count += 1;
-    });
-    return Object.entries(map)
-      .map(([name, v]) => ({ name, avg: parseFloat((v.total / v.count).toFixed(1)) }))
-      .sort((a, b) => b.avg - a.avg).slice(0, 8);
-  }, [filtered]);
-
-  const byLocation = useMemo(() => {
-    const map = {};
-    filtered.forEach(s => { map[s.location] = (map[s.location] || 0) + 1; });
-    return Object.entries(map).map(([location, count]) => ({ location, count })).sort((a, b) => b.count - a.count);
-  }, [filtered]);
-
-  const bySkill = useMemo(() => {
-    const map = {};
-    filtered.forEach(s => s.skills.forEach(sk => { map[sk] = (map[sk] || 0) + 1; }));
-    return Object.entries(map).map(([skill, count]) => ({ skill, count })).sort((a, b) => b.count - a.count).slice(0, 8);
-  }, [filtered]);
-
-  const activeCount = Object.values(filters).filter(v => v !== 'All').length;
-  const resetFilters = () => setFilters({ year: 'All', company: 'All', packageRange: 'All', skill: 'All', location: 'All' });
+  const activeCount = useMemo(
+    () => Object.values(filters).filter((v) => v !== 'All').length,
+    [filters]
+  );
+  const resetFilters = () => setFilters({ year: 'All', company: 'All', packageRange: 'All', location: 'All' });
 
   const kpis = [
-    { label: 'Students Placed',  value: totalPlaced,          icon: Users,     color: 'bg-indigo-50 text-indigo-600' },
-    { label: 'Avg Package',      value: `₹${avgPackage} LPA`, icon: Award,     color: 'bg-amber-50 text-amber-600' },
-    { label: 'Highest Package',  value: `₹${highestPkg} LPA`, icon: TrendingUp,color: 'bg-green-50 text-green-600' },
-    { label: 'Companies',        value: uniqueCompanies,       icon: Building2, color: 'bg-purple-50 text-purple-600' },
+    { label: 'Students Placed',  value: summary.students_placed ?? 0,                    icon: Users,      color: 'bg-indigo-50 text-indigo-600' },
+    { label: 'Avg Package',      value: `₹${summary.avg_package ?? 0} LPA`,              icon: Award,      color: 'bg-amber-50 text-amber-600' },
+    { label: 'Highest Package',  value: `₹${summary.highest_package ?? 0} LPA`,          icon: TrendingUp, color: 'bg-green-50 text-green-600' },
+    { label: 'Companies',        value: summary.companies ?? 0,                           icon: Building2,  color: 'bg-purple-50 text-purple-600' },
   ];
+
+  const totalRecords = filterOptions.total_records ?? 0;
 
   return (
     <DashboardLayout>
@@ -110,6 +75,18 @@ export default function PlacementOverview() {
           <h1 className="text-xl font-bold text-gray-800">Placement Overview</h1>
           <p className="text-sm text-gray-500 mt-0.5">Computer Engineering Department – all batches</p>
         </div>
+
+        {loading && (
+          <div className="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm text-sky-700">
+            Loading placement overview...
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         {/* ── Filter Bar ── */}
         <div className="bg-white rounded-xl px-5 py-4 shadow-sm border border-gray-100">
@@ -123,18 +100,17 @@ export default function PlacementOverview() {
             </div>
 
             {[
-              { key: 'year',         label: 'Year',     options: ['All', '2025', '2024', '2023'] },
-              { key: 'company',      label: 'Company',  options: ['All', ...ALL_COMPANIES] },
-              { key: 'packageRange', label: 'Package',  options: PACKAGE_RANGES.map(r => r.label) },
-              { key: 'skill',        label: 'Skill',    options: ['All', ...ALL_SKILLS] },
-              { key: 'location',     label: 'Location', options: ['All', ...ALL_LOCATIONS] },
+              { key: 'year',         label: 'Year',     options: ['All', ...(filterOptions.years || [])] },
+              { key: 'company',      label: 'Company',  options: ['All', ...(filterOptions.companies || [])] },
+              { key: 'packageRange', label: 'Package',  options: ['All', ...(filterOptions.package_ranges || [])] },
+              { key: 'location',     label: 'Location', options: ['All', ...(filterOptions.locations || [])] },
             ].map(({ key, label, options }) => (
               <div key={key} className="flex flex-col gap-0.5">
                 <label className="text-xs text-gray-400">{label}</label>
                 <select
                   value={filters[key]}
                   onChange={e => setFilters(f => ({ ...f, [key]: e.target.value }))}
-                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-gray-50 min-w-[110px]"
+                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-gray-50 min-w-27.5"
                 >
                   {options.map(o => <option key={o}>{o}</option>)}
                 </select>
@@ -148,7 +124,7 @@ export default function PlacementOverview() {
             )}
 
             <div className="ml-auto pb-1.5 text-xs text-gray-400">
-              <span className="font-semibold text-gray-600">{filtered.length}</span> / {studentsData.length} students
+              <span className="font-semibold text-gray-600">{records.length}</span> / {totalRecords} records
             </div>
           </div>
 
@@ -183,14 +159,14 @@ export default function PlacementOverview() {
         </div>
 
         {/* ── Empty state ── */}
-        {filtered.length === 0 && (
+        {!loading && records.length === 0 && (
           <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-100 text-center">
             <p className="text-gray-400 text-sm">No students match the selected filters.</p>
             <button onClick={resetFilters} className="mt-3 text-indigo-600 text-sm hover:underline">Reset filters</button>
           </div>
         )}
 
-        {filtered.length > 0 && (
+        {records.length > 0 && (
           <>
             {/* Row 1 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -214,41 +190,14 @@ export default function PlacementOverview() {
                     <Pie data={pkgDist} dataKey="count" nameKey="range" cx="50%" cy="50%" outerRadius={80} innerRadius={42} paddingAngle={3}>
                       {pkgDist.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={v => [v, 'Students']} />
                     <Legend wrapperStyle={{ fontSize: 12 }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* Row 2 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">Students per Company</h3>
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={byCompany} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                    <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={105} />
-                    <Tooltip formatter={v => [v, 'Students']} />
-                    <Bar dataKey="count" fill="#22c55e" radius={[0, 4, 4, 0]} name="Students" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">Avg Package per Company (LPA)</h3>
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={avgByCompany} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 11 }} unit=" L" />
-                    <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={105} />
-                    <Tooltip formatter={v => [`₹${v} LPA`, 'Avg Package']} />
-                    <Bar dataKey="avg" fill="#f59e0b" radius={[0, 4, 4, 0]} name="Avg LPA" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+        
 
             {/* Row 3 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -265,25 +214,14 @@ export default function PlacementOverview() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">Top Skills (Filtered Students)</h3>
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={bySkill} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-                    <YAxis dataKey="skill" type="category" tick={{ fontSize: 11 }} width={90} />
-                    <Tooltip formatter={v => [v, 'Students']} />
-                    <Bar dataKey="count" fill="#ec4899" radius={[0, 4, 4, 0]} name="Students" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+            
             </div>
 
             {/* Student Table */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-700">Student Records</h3>
-                <span className="text-xs text-gray-400">{filtered.length} results</span>
+                <span className="text-xs text-gray-400">{records.length} results</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -291,14 +229,14 @@ export default function PlacementOverview() {
                     <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
                       <th className="px-5 py-3 text-left">Student</th>
                       <th className="px-5 py-3 text-left">Company</th>
-                      <th className="px-5 py-3 text-left">Skills</th>
+                      
                       <th className="px-5 py-3 text-left">Package</th>
                       <th className="px-5 py-3 text-left">Location</th>
                       <th className="px-5 py-3 text-left">Year</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {filtered.map(s => (
+                    {records.map(s => (
                       <tr key={s.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-2.5">
@@ -312,13 +250,6 @@ export default function PlacementOverview() {
                           </div>
                         </td>
                         <td className="px-5 py-3 text-gray-700">{s.company}</td>
-                        <td className="px-5 py-3">
-                          <div className="flex flex-wrap gap-1">
-                            {s.skills.map(sk => (
-                              <span key={sk} className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-full text-xs">{sk}</span>
-                            ))}
-                          </div>
-                        </td>
                         <td className="px-5 py-3 font-semibold text-green-600">₹{s.package} LPA</td>
                         <td className="px-5 py-3 text-gray-500">{s.location}</td>
                         <td className="px-5 py-3 text-gray-500">{s.year}</td>

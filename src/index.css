@@ -1,1 +1,53 @@
 @import "tailwindcss";
+
+@keyframes landingFadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(22px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes navbarDrop {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.landing-reveal {
+	opacity: 0;
+	animation: landingFadeUp 650ms ease-out forwards;
+}
+
+.landing-reveal-delay-1 {
+	animation-delay: 140ms;
+}
+
+.landing-reveal-delay-2 {
+	animation-delay: 260ms;
+}
+
+.landing-nav-float {
+	animation: navbarDrop 420ms ease-out;
+}
+
+.landing-hero-glow {
+	text-shadow: 0 6px 24px rgba(2, 6, 23, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.landing-reveal,
+	.landing-nav-float {
+		opacity: 1;
+		animation: none;
+		transform: none;
+	}
+}
