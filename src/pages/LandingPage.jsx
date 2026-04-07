@@ -1,35 +1,17 @@
-
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  BarChart2,
-  Users,
-  Building2,
-  TrendingUp,
-  ArrowRight,
-  Search,
-  LineChart,
-  Handshake,
-  Rocket,
-  GraduationCap,
-  MapPin,
-  Phone,
-  Mail,
+  BarChart2, Users, Building2, TrendingUp, ArrowRight,
+  Search, LineChart, Handshake, Rocket, GraduationCap,
+  MapPin, Phone, Mail,
 } from "lucide-react";
 import {
-  BarChart,
-  Bar,
-  LabelList,
-  XAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart as ReLineChart,
-  Line,
-  YAxis,
+  BarChart, Bar, LabelList, XAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, LineChart as ReLineChart, Line, YAxis,
 } from "recharts";
-import { placementsData, yearlyComparison } from "../data/placementsData";
+import { yearlyComparison } from "../data/placementsData";
 import { activitiesData } from "../data/activitiesData";
-import logo from "../assets/logo.png";
+import logo from "/kkw-logo.png";
 
 const stats = [
   { label: "Students Placed", value: "312", icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
@@ -58,11 +40,21 @@ const howItWorks = [
   { step: "04", icon: Rocket, title: "Track Growth", desc: "Monitor placement success and package trends over time." },
 ];
 
-const highlights = [
-  { value: "500+", label: "Placed in 2024" },
-  { value: "90%", label: "Placement Rate" },
-  { value: "Top Packages", label: "In core industries" },
-  { value: "Strong", label: "Alumni network" },
+const heroSlides = [
+  {
+    bg: "/header.png",
+    tag: "K K Wagh Education Society",
+    line1: "From data to decisions:",
+    line2: "Empowering",
+    line3: "placement excellence",
+  },
+  {
+    bg: "/header1.png",
+    tag: "Computer Engineering Department",
+    line1: "Track. Analyse. Grow:",
+    line2: "Real-time",
+    line3: "placement analytics",
+  },
 ];
 
 const testimonial = {
@@ -74,6 +66,31 @@ const testimonial = {
 export default function LandingPage() {
   const navigate = useNavigate();
   const activities = activitiesData[2025].slice(0, 3);
+  const [scrolled, setScrolled] = useState(false);
+  const [slide, setSlide] = useState(0);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setSlide((s) => (s + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(timerRef.current);
+  }, []);
+
+  const goTo = (i) => {
+    clearInterval(timerRef.current);
+    setSlide(i);
+    timerRef.current = setInterval(() => {
+      setSlide((s) => (s + 1) % heroSlides.length);
+    }, 5000);
+  };
+
   const overviewTrend = yearlyComparison.filter(
     ({ year }) => Number(year) >= 2021 && Number(year) <= 2025
   );
@@ -88,119 +105,119 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white font-sans">
 
       {/* ── Navbar ── */}
-      <nav className="sticky top-0 z-50 bg-[#4a90d9] shadow-md">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-          {/* Logo + name */}
+      <nav
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+        style={{
+          backgroundColor: scrolled ? "rgba(255,255,255,0.97)" : "transparent",
+          boxShadow: scrolled ? "0 2px 16px rgba(0,0,0,0.10)" : "none",
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-white rounded-lg p-1 shadow-sm">
-              <img src={logo} alt="KKWIEER" className="w-8 h-8 object-contain" />
-            </div>
-            <div className="leading-tight">
-              <p className="text-xs font-bold text-white tracking-widest uppercase">KKWIEER</p>
-              <p className="text-[10px] text-blue-100">Computer Engineering</p>
-            </div>
+            <img src={logo} alt="KKWIEER" className="w-30 h-30 object-contain drop-shadow" />
+          
           </div>
 
-          {/* Nav links */}
-          <div className="hidden md:flex items-center h-full">
-            <a href="#" className="h-14 flex items-center px-5 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-400 transition-colors">
-              Home
-            </a>
-            <a href="#overview" className="h-14 flex items-center px-5 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
-              Insights
-            </a>
-            <a href="#recruiters" className="h-14 flex items-center px-5 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
-              Recruiters
-            </a>
-            <a href="#highlights" className="h-14 flex items-center px-5 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
-              Statistics
-            </a>
-            <a href="#contact" className="h-14 flex items-center px-5 text-sm font-semibold text-white hover:bg-blue-500 transition-colors">
-              Contact
-            </a>
+          <div className="hidden md:flex items-center gap-1">
+            {[
+              { label: "Home", href: "#" },
+              { label: "Insights", href: "#overview" },
+              { label: "Recruiters", href: "#recruiters" },
+              { label: "Statistics", href: "#highlights" },
+              { label: "Placement", href: "#activities" },
+              { label: "Contact", href: "#contact" },
+            ].map((l) => (
+              <a
+                key={l.label}
+                href={l.href}
+                className={`px-4 py-1.5 text-sm font-medium rounded transition-colors duration-200 ${
+                  scrolled ? "text-gray-700 hover:text-indigo-600" : "text-white/90 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {l.label}
+              </a>
+            ))}
           </div>
 
-          {/* Login */}
           <button
             onClick={() => navigate("/dashboard")}
-            className="border-2 border-white text-white text-sm font-bold px-5 py-1.5 rounded hover:bg-white hover:text-[#4a90d9] transition-all duration-200"
+            className={`text-sm font-semibold px-5 py-2 rounded-full border-2 transition-all duration-200 ${
+              scrolled
+                ? "border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+                : "border-white text-white hover:bg-white hover:text-gray-900"
+            }`}
           >
             Login
           </button>
         </div>
       </nav>
 
-      {/* ── Hero ── */}
-      <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-slate-950">
-        <div className="absolute inset-0 bg-[url('/header.png')] bg-cover bg-center" />
+      {/* ── Hero Carousel ── */}
+      <section className="relative h-screen min-h-[520px] overflow-hidden bg-slate-950">
+        {heroSlides.map((s, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 transition-opacity duration-1000"
+            style={{ opacity: slide === i ? 1 : 0 }}
+          >
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url('${s.bg}')` }}
+            />
+          </div>
+        ))}
 
+        {/* Left dark overlay fading right */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 pointer-events-none"
           style={{
-            background:
-              "linear-gradient(102deg, rgba(2,6,23,0.9) 0%, rgba(2,6,23,0.75) 26%, rgba(2,6,23,0.4) 40%, rgba(2,6,23,0.2) 50%)",
+            background: "linear-gradient(to right, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.55) 38%, rgba(0,0,0,0.15) 60%, transparent 80%)",
           }}
-          aria-hidden="true"
+        />
+        {/* Bottom fade */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.30) 0%, transparent 35%)" }}
         />
 
-        <div className="relative h-full min-h-[calc(100vh-4rem)] flex items-center">
-          <div className="max-w-7xl mx-auto w-full px-5 sm:px-8 lg:px-6 py-14 sm:py-20">
-            <div className="max-w-4xl flex items-start gap-4 sm:gap-6">
-              <div className="mt-0.5 hidden sm:flex items-start gap-1.5 shrink-0" aria-hidden="true">
-                <div className="w-1 h-60 rounded-full bg-amber-500 " />
-                
-              </div>
-
-              <div className="max-w-3xl">
-                <p className="text-amber-300/95 text-xs sm:text-sm font-normal tracking-[0.18em] uppercase mb-4">
-                  K K Wagh Education Society
-                </p>
-
-                <h1 className="font-[Georgia] text-[48px] font-normal leading-[57.6px] text-white italic">
-                COMPUTER ENGINEERING
-                </h1>
-
-                <p className="mt-5 text-sm sm:text-base lg:text-lg text-slate-200 max-w-2xl leading-relaxed">
-                  Explore placement trends, recruiter activity, package growth, and department performance through one
-                  streamlined analytics platform.
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-3 mt-8">
-                  <Link
-                    to="/placements/overview"
-                    className="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm sm:text-base px-6 py-3 rounded-lg transition-all shadow-lg"
-                  >
-                    View Insights <ArrowRight size={16} />
-                  </Link>
-                  <button
-                    onClick={() => navigate("/dashboard")}
-                    className="inline-flex items-center justify-center border border-white/40 text-white font-medium text-sm sm:text-base px-6 py-3 rounded-lg hover:bg-white/10 transition-all"
-                  >
-                    Login
-                  </button>
-                </div>
-              </div>
+       
+        {/* Content */}
+        <div className="relative h-full flex items-center">
+          <div className="pl-[104px] sm:pl-[116px] pr-6 max-w-[56%]">
+            <p className="text-amber-300 text-[11px] sm:text-xs font-semibold tracking-[0.2em] uppercase mb-5">
+              {heroSlides[slide].tag}
+            </p>
+            <h1 className="text-white leading-[1.15]">
+              <span className="block text-2xl sm:text-3xl lg:text-4xl font-light italic mb-1">
+                {heroSlides[slide].line1}
+              </span>
+              <span className="block text-2xl sm:text-3xl lg:text-4xl font-light italic text-amber-300 mb-1">
+                {heroSlides[slide].line2}
+              </span>
+              <span className="block text-2xl sm:text-[2rem] lg:text-[2.4rem] font-extrabold">
+                {heroSlides[slide].line3}
+              </span>
+            </h1>
+            <div className="flex flex-wrap gap-3 mt-8">
+              <Link
+                to="/placements/overview"
+                className="bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm px-6 py-2.5 rounded-lg transition-all flex items-center gap-2 shadow-lg"
+              >
+                View Insights <ArrowRight size={15} />
+              </Link>
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="border border-white/50 text-white text-sm px-6 py-2.5 rounded-lg hover:bg-white/10 transition-all"
+              >
+                Login
+              </button>
             </div>
           </div>
         </div>
+
+  
       </section>
 
-      {/* ── Stats strip ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 -mt-8 relative z-10">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((s) => (
-            <div key={s.label} className="bg-white rounded-2xl p-5 shadow-lg border border-gray-100 flex items-center gap-4">
-              <div className={`${s.bg} p-3 rounded-xl`}>
-                <s.icon size={22} className={s.color} />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* ── Placement Insights Overview ── */}
       <section id="overview" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
@@ -208,9 +225,7 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Placement Insights Overview</h2>
           <p className="text-gray-500 mt-2 text-sm">Year-wise placement highlights for Computer Engineering</p>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Chart 1 – Year-wise Placements */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center justify-between mb-1">
               <div>
@@ -238,7 +253,6 @@ export default function LandingPage() {
             </ResponsiveContainer>
           </div>
 
-          {/* Chart 2 – Company-wise Hiring */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center justify-between mb-1">
               <div>
@@ -265,70 +279,22 @@ export default function LandingPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-
-          {/* Chart 3 – Avg Package Trend */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-1">
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">3</p>
-                <h3 className="text-base font-semibold text-gray-800">Average Package Trend</h3>
-              </div>
-              <Link to="/analytics" className="text-xs text-indigo-600 hover:underline font-medium">View all →</Link>
-            </div>
-            <ResponsiveContainer width="100%" height={220}>
-              <ReLineChart data={overviewTrend} margin={{ top: 24, right: 8, left: -10, bottom: 0 }}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="year" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v) => [`${v} LPA`, "Avg Package"]} />
-                <Line type="monotone" dataKey="avg" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 4, fill: "#f59e0b" }} />
-              </ReLineChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Chart 4 – Placement Rate */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-1">
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">4</p>
-                <h3 className="text-base font-semibold text-gray-800">Placement Rate (%)</h3>
-              </div>
-              <Link to="/analytics" className="text-xs text-indigo-600 hover:underline font-medium">View all →</Link>
-            </div>
-            <ResponsiveContainer width="100%" height={220}>
-              <ReLineChart data={overviewTrend} margin={{ top: 24, right: 8, left: -10, bottom: 0 }}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="year" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} domain={[60, 100]} />
-                <Tooltip formatter={(v) => [`${v}%`, "Rate"]} />
-                <Line type="monotone" dataKey="rate" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 4, fill: "#8b5cf6" }} />
-              </ReLineChart>
-            </ResponsiveContainer>
-          </div>
+          
         </div>
       </section>
 
       {/* ── Top Recruiters ── */}
-      <section id="recruiters" className="py-14 sm:py-18 bg-gray-50 border-y border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <section id="recruiters" className="py-14 bg-gray-50 border-y border-gray-100">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6">
           <div className="text-center mb-10">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Our Top Recruiters</h2>
             <p className="text-gray-500 mt-2 text-sm">Leading companies that recruit from KKWIEER Computer Engineering</p>
           </div>
-
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
             {recruiterHighlights.map((company) => (
-              <div
-                key={company.id}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all duration-200 p-4 flex flex-col items-center gap-3"
-              >
-                <div className="h-12 w-full flex items-center justify-center">
-                  <img
-                    src={company.logo}
-                    alt={company.name}
-                    className="max-h-10 max-w-full object-contain"
-                    loading="lazy"
-                  />
+              <div key={company.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all duration-200 p-4 flex flex-col items-center gap-3">
+                <div className="h-30 w-full flex items-center justify-center">
+                  <img src={company.logo} alt={company.name} className=" max-w-full object-contain" loading="lazy" />
                 </div>
                 <p className="text-xs font-semibold text-gray-700 text-center">{company.name}</p>
               </div>
@@ -338,7 +304,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Stats Banner ── */}
-      <section id="highlights" className="bg-linear-to-r from-indigo-600 via-violet-600 to-purple-700 py-12">
+      <section id="highlights" className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-700 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-white text-center">
             {[
@@ -357,16 +323,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Placement Highlights @ KKWagh ── */}
+      {/* ── Placement Highlights ── */}
       <section className="py-16 sm:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Placement Highlights @ KKWagh</h2>
             <p className="text-gray-500 mt-2 text-sm">What makes our placement record stand out</p>
           </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            {/* Left – highlight cards */}
             <div className="grid grid-cols-2 gap-4">
               {[
                 { val: "500+", label: "Placed in 2024", color: "bg-indigo-50 border-indigo-100", text: "text-indigo-700" },
@@ -380,8 +344,6 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-
-            {/* Right – testimonial */}
             <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 flex flex-col justify-between gap-4">
               <div>
                 <div className="flex gap-1 mb-3">
@@ -389,9 +351,7 @@ export default function LandingPage() {
                     <span key={i} className="text-amber-400 text-lg">★</span>
                   ))}
                 </div>
-                <p className="text-gray-700 text-sm leading-relaxed italic">
-                  "{testimonial.quote}"
-                </p>
+                <p className="text-gray-700 text-sm leading-relaxed italic">"{testimonial.quote}"</p>
               </div>
               <div className="flex items-center gap-3 pt-3 border-t border-gray-200">
                 <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
@@ -407,31 +367,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── How It Works ── */}
-      <section className="py-16 sm:py-20 bg-gray-50 border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">How It Works</h2>
-            <p className="text-gray-500 mt-2 text-sm">Four simple steps to get the most out of the portal</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {howItWorks.map((step, i) => (
-              <div key={step.step} className="relative bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center hover:shadow-md transition-shadow">
-                {i < howItWorks.length - 1 && (
-                  <div className="hidden lg:block absolute top-10 -right-3 w-6 h-0.5 bg-gray-200 z-10" />
-                )}
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
-                  <step.icon size={22} className="text-indigo-600" />
-                </div>
-                <p className="text-xs font-bold text-indigo-400 tracking-widest mb-1">Step {step.step}</p>
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
 
       {/* ── Recent Activities ── */}
       <section id="activities" className="py-16 sm:py-20 bg-white">
@@ -442,32 +378,20 @@ export default function LandingPage() {
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Recent Activities</h2>
               <p className="text-gray-500 text-sm mt-1">Workshops, hackathons, expert sessions, and placement drives from 2025.</p>
             </div>
-            <Link
-              to="/activities/overview"
-              className="hidden md:inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors"
-            >
+            <Link to="/activities/overview" className="hidden md:inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors">
               View All <ArrowRight size={15} />
             </Link>
           </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {activities.map((a) => {
               const formattedDate = new Date(a.date).toLocaleDateString("en-IN", {
                 day: "2-digit", month: "short", year: "numeric",
               });
               return (
-                <article
-                  key={a.id}
-                  className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-                >
+                <article key={a.id} className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                   <div className="relative h-44 overflow-hidden">
-                    <img
-                      src={a.image}
-                      alt={a.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
+                    <img src={a.image} alt={a.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     <span className="absolute left-3 top-3 text-[11px] font-semibold bg-white text-gray-800 px-2.5 py-1 rounded-full shadow-sm">
                       {a.category}
                     </span>
@@ -484,7 +408,6 @@ export default function LandingPage() {
               );
             })}
           </div>
-
           <div className="md:hidden text-center mt-8">
             <Link to="/activities/overview" className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-xl text-sm font-medium">
               View All <ArrowRight size={15} />
@@ -494,7 +417,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA Banner ── */}
-      <section className="py-10 bg-linear-to-r from-indigo-600 to-violet-700">
+      <section className="py-10 bg-gradient-to-r from-indigo-600 to-violet-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <p className="text-white font-bold text-lg sm:text-xl">Ready to explore placement insights?</p>
@@ -512,7 +435,6 @@ export default function LandingPage() {
       {/* ── Footer ── */}
       <footer id="contact" className="bg-gray-950 text-gray-400 pt-14 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
-          {/* Brand */}
           <div>
             <div className="flex items-center gap-3 mb-4">
               <img src={logo} alt="KKWagh" className="w-9 h-9 object-contain brightness-200" />
@@ -530,8 +452,6 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
-
-          {/* Quick Links */}
           <div>
             <h4 className="text-white font-semibold text-sm mb-4">Quick Links</h4>
             <ul className="space-y-2.5 text-sm">
@@ -549,8 +469,6 @@ export default function LandingPage() {
               ))}
             </ul>
           </div>
-
-          {/* Contact */}
           <div>
             <h4 className="text-white font-semibold text-sm mb-4">Contact</h4>
             <div className="space-y-3 text-sm">
@@ -569,7 +487,6 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 border-t border-gray-800 text-center text-xs text-gray-600">
           © 2025 Computer Engineering Department, K. K. Wagh Institute. All rights reserved.
         </div>
