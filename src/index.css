@@ -1,10 +1,61 @@
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&display=swap");
 @import "tailwindcss";
+
+@layer base {
+	body {
+		font-family: "Outfit", sans-serif;
+	}
+}
+
+@keyframes fadeUp {
+	from {
+		opacity: 0;
+		transform: translateY(28px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes pulseSlow {
+	0%,
+	100% {
+		opacity: 1;
+	}
+
+	50% {
+		opacity: 0.6;
+	}
+}
+
+@keyframes marquee {
+	0% {
+		transform: translateX(0);
+	}
+
+	100% {
+		transform: translateX(-50%);
+	}
+}
+
+@keyframes marqueeReverse {
+	0% {
+		transform: translateX(-50%);
+	}
+
+	100% {
+		transform: translateX(0);
+	}
+}
 
 @keyframes landingFadeUp {
 	from {
 		opacity: 0;
 		transform: translateY(22px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);
@@ -16,10 +67,31 @@
 		opacity: 0;
 		transform: translateY(-8px);
 	}
+
 	to {
 		opacity: 1;
 		transform: translateY(0);
 	}
+}
+
+.font-display {
+	font-family: "Instrument Serif", Georgia, serif;
+}
+
+.font-body {
+	font-family: "Outfit", sans-serif;
+}
+
+.pulse-slow {
+	animation: pulseSlow 2s infinite;
+}
+
+.marquee-track {
+	animation: marquee 32s linear infinite;
+}
+
+.marquee-track-rev {
+	animation: marqueeReverse 36s linear infinite;
 }
 
 .landing-reveal {
@@ -44,6 +116,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+	.pulse-slow,
+	.marquee-track,
+	.marquee-track-rev,
 	.landing-reveal,
 	.landing-nav-float {
 		opacity: 1;

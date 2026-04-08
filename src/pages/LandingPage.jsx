@@ -1,24 +1,32 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  BarChart2, Users, Building2, TrendingUp, ArrowRight,
-  Search, LineChart, Handshake, Rocket, GraduationCap,
-  MapPin, Phone, Mail,
+  ArrowRight,
+  Award,
+  BarChart2,
+  Building2,
+  ChevronDown,
+  GraduationCap,
+  Mail,
+  Menu,
+  MapPin,
+  Phone,
+  TrendingUp,
+  X,
 } from "lucide-react";
 import {
-  BarChart, Bar, LabelList, XAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LineChart as ReLineChart, Line, YAxis,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { yearlyComparison } from "../data/placementsData";
 import { activitiesData } from "../data/activitiesData";
 import logo from "/kkw-logo.png";
-
-const stats = [
-  { label: "Students Placed", value: "312", icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
-  { label: "Companies Visited", value: "78", icon: Building2, color: "text-emerald-600", bg: "bg-emerald-50" },
-  { label: "Avg Package", value: "₹8.4 LPA", icon: TrendingUp, color: "text-amber-600", bg: "bg-amber-50" },
-  { label: "Placement Rate", value: "86.7%", icon: BarChart2, color: "text-violet-600", bg: "bg-violet-50" },
-];
 
 const recruiterHighlights = [
   { id: 1, name: "Cybage", logo: "/cybage.png" },
@@ -33,34 +41,97 @@ const recruiterHighlights = [
   { id: 10, name: "TIA", logo: "/tia.jpg" },
 ];
 
-const howItWorks = [
-  { step: "01", icon: Search, title: "Explore Data", desc: "Browse placement statistics and detailed reports by year." },
-  { step: "02", icon: LineChart, title: "View Analytics", desc: "Understand trends and performance across batches." },
-  { step: "03", icon: Handshake, title: "Discover Recruiters", desc: "Connect with top companies that visit our campus." },
-  { step: "04", icon: Rocket, title: "Track Growth", desc: "Monitor placement success and package trends over time." },
-];
-
 const heroSlides = [
   {
     bg: "/header.png",
-    tag: "K K Wagh Education Society",
+    
     line1: "From data to decisions:",
     line2: "Empowering",
-    line3: "placement excellence",
+    line3: "Placement Excellence",
   },
   {
     bg: "/header1.png",
-    tag: "Computer Engineering Department",
     line1: "Track. Analyse. Grow:",
     line2: "Real-time",
-    line3: "placement analytics",
+    line3: "Placement Analytics",
   },
 ];
 
 const testimonial = {
-  quote: "The placement analytics portal provided clear insights into company trends, helping me prepare effectively and secure a top role.",
+  quote:
+    "The placement analytics portal provided clear insights into company trends, helping me prepare effectively and secure a top role.",
   name: "Anjali Sharma",
   role: "Placed at Infosys",
+};
+
+const companiesVisitedByYear = {
+  2021: 58,
+  2022: 62,
+  2023: 65,
+  2024: 71,
+  2025: 78,
+};
+
+const sectionLabelClass =
+  "mb-2 font-body text-[0.68rem] font-bold uppercase tracking-[0.18em] text-indigo-600";
+const sectionHeadingClass =
+  "font-display text-[clamp(1.7rem,3vw,2.4rem)] font-normal leading-[1.2] text-slate-950";
+const sectionSubClass = "mt-2 font-body text-[0.85rem] text-slate-500";
+const primaryButtonClass =
+  "inline-flex items-center justify-center gap-2 rounded-lg bg-amber-500 px-6 py-3 text-sm font-bold tracking-[0.02em] text-slate-950 shadow-[0_4px_16px_rgba(232,160,32,0.35)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-amber-400";
+const secondaryButtonClass =
+  "inline-flex items-center justify-center gap-2 rounded-lg border border-white/30 px-6 py-3 text-sm font-medium tracking-[0.02em] text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10";
+
+function AnimatedCounter({ target, suffix = "", duration = 1800 }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const numTarget = parseFloat(target.replace(/[^0-9.]/g, ""));
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const start = performance.now();
+          const tick = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(eased * numTarget));
+            if (progress < 1) requestAnimationFrame(tick);
+            else setCount(numTarget);
+          };
+          requestAnimationFrame(tick);
+        }
+      },
+      { threshold: 0.3 },
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return (
+    <span ref={ref}>
+      {count}
+      {suffix}
+    </span>
+  );
+}
+
+const CustomTooltip = ({ active, payload, label, color }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-xl border border-slate-100 bg-white px-4 py-2.5 text-sm shadow-lg">
+        <p className="font-semibold text-slate-800">{label}</p>
+        <p className="font-bold" style={{ color }}>
+          {payload[0].value}
+        </p>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 export default function LandingPage() {
@@ -68,6 +139,7 @@ export default function LandingPage() {
   const activities = activitiesData[2025].slice(0, 3);
   const [scrolled, setScrolled] = useState(false);
   const [slide, setSlide] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const timerRef = useRef(null);
 
   useEffect(() => {
@@ -77,421 +149,756 @@ export default function LandingPage() {
   }, []);
 
   useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setSlide((s) => (s + 1) % heroSlides.length);
-    }, 5000);
+    const onResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    timerRef.current = setInterval(
+      () => setSlide((current) => (current + 1) % heroSlides.length),
+      5000,
+    );
     return () => clearInterval(timerRef.current);
   }, []);
 
-  const goTo = (i) => {
+  const goTo = (index) => {
     clearInterval(timerRef.current);
-    setSlide(i);
-    timerRef.current = setInterval(() => {
-      setSlide((s) => (s + 1) % heroSlides.length);
-    }, 5000);
+    setSlide(index);
+    timerRef.current = setInterval(
+      () => setSlide((current) => (current + 1) % heroSlides.length),
+      5000,
+    );
   };
 
   const overviewTrend = yearlyComparison.filter(
-    ({ year }) => Number(year) >= 2021 && Number(year) <= 2025
+    ({ year }) => Number(year) >= 2021 && Number(year) <= 2025,
   );
 
-  const companiesVisitedByYear = { 2021: 58, 2022: 62, 2023: 65, 2024: 71, 2025: 78 };
   const companiesVisitedTrend = overviewTrend.map(({ year }) => ({
     year,
     companiesVisited: companiesVisitedByYear[year],
   }));
 
-  return (
-    <div className="min-h-screen bg-white font-sans">
+  const navLinks = [
+    { label: "Home", href: "#" },
+    { label: "Insights", href: "#overview" },
+    { label: "Recruiters", href: "#recruiters" },
+    { label: "Statistics", href: "#highlights" },
+    { label: "Contact", href: "#contact" },
+  ];
 
-      {/* ── Navbar ── */}
+  const statStripItems = [
+    {
+      icon: GraduationCap,
+      val: "845",
+      suffix: "+",
+      label: "Students Placed",
+      iconClass: "text-indigo-600",
+      bgClass: "bg-indigo-600/10",
+      borderClass: "lg:border-r lg:border-slate-200",
+    },
+    {
+      icon: Building2,
+      val: "78",
+      suffix: "+",
+      label: "Companies Visited",
+      iconClass: "text-emerald-600",
+      bgClass: "bg-emerald-600/10",
+      borderClass: "lg:border-r lg:border-slate-200",
+    },
+    {
+      icon: Award,
+      val: "36.5",
+      suffix: " LPA",
+      label: "Highest Package",
+      iconClass: "text-amber-500",
+      bgClass: "bg-amber-500/10",
+      borderClass: "lg:border-r lg:border-slate-200",
+    },
+    {
+      icon: TrendingUp,
+      val: "86.7",
+      suffix: "%",
+      label: "Placement Rate",
+      iconClass: "text-violet-600",
+      bgClass: "bg-violet-600/10",
+      borderClass: "",
+    },
+  ];
+
+  const milestoneItems = [
+    {
+      icon: GraduationCap,
+      val: "845",
+      suffix: "+",
+      label: "Students Placed",
+      sub: "Across all batches",
+      color: "text-sky-300",
+      border: false,
+    },
+    {
+      icon: Building2,
+      val: "112",
+      suffix: "+",
+      label: "Companies Visited",
+      sub: "Top industry names",
+      color: "text-emerald-300",
+      border: true,
+    },
+    {
+      icon: TrendingUp,
+      val: "36.5",
+      suffix: " LPA",
+      label: "Highest Package",
+      sub: "Record CTC offered",
+      color: "text-amber-300",
+      border: true,
+    },
+    {
+      icon: BarChart2,
+      val: "8.6",
+      suffix: " LPA",
+      label: "Average Package",
+      sub: "Consistent growth",
+      color: "text-violet-300",
+      border: true,
+    },
+  ];
+
+  const highlightItems = [
+    {
+      val: "500+",
+      label: "Placed in 2024",
+      accent: "text-indigo-600",
+      bg: "bg-indigo-50",
+      border: "border-indigo-100",
+    },
+    {
+      val: "90%",
+      label: "Placement Rate",
+      accent: "text-emerald-600",
+      bg: "bg-emerald-50",
+      border: "border-emerald-100",
+    },
+    {
+      val: "₹36.5L",
+      label: "Peak CTC Offered",
+      accent: "text-amber-600",
+      bg: "bg-amber-50",
+      border: "border-amber-100",
+    },
+    {
+      val: "Strong",
+      label: "Alumni Network",
+      accent: "text-violet-600",
+      bg: "bg-violet-50",
+      border: "border-violet-100",
+    },
+  ];
+
+  const quickLinks = [
+    { label: "Home", to: "/" },
+    { label: "Recruiters", to: "/placements/companies" },
+    { label: "Statistics", to: "/analytics" },
+    { label: "Contact TPO", to: "#contact" },
+    { label: "Privacy Policy", to: "#" },
+  ];
+
+  const footerContacts = [
+    {
+      Icon: MapPin,
+      text: "K. K. Wagh Institute of Engineering Education and Research, Nashik, Maharashtra",
+    },
+    {
+      Icon: Mail,
+      text: "placement@kkwagh.edu.in",
+      href: "mailto:placement@kkwagh.edu.in",
+    },
+    {
+      Icon: Phone,
+      text: "+91 253 251 0371",
+      href: "tel:+912532510371",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-white font-body text-slate-900">
       <nav
-        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-        style={{
-          backgroundColor: scrolled ? "rgba(255,255,255,0.97)" : "transparent",
-          boxShadow: scrolled ? "0 2px 16px rgba(0,0,0,0.10)" : "none",
-        }}
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "bg-white/95 shadow-[0_1px_0_rgba(0,0,0,0.08),0_4px_20px_rgba(0,0,0,0.06)] backdrop-blur-md"
+            : "bg-transparent"
+        }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-20 flex items-center justify-between">
+        <div className="mx-auto flex h-20 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-15">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="KKWIEER" className="w-30 h-30 object-contain drop-shadow" />
-          
+            <img
+              src={logo}
+              alt="KKWIEER"
+              className={`h-14 w-auto object-contain sm:h-18 lg:h-22 ${scrolled ? "" : "brightness-0 invert"}`}
+            />
+            <div
+              className={`border-l pl-3 ${scrolled ? "border-slate-200" : "border-white/25"}`}
+            >
+              <p
+                className={`m-0 text-lg font-bold tracking-[0.04em] ${scrolled ? "text-slate-950" : "text-white"}`}
+              >
+                KKWIEER
+              </p>
+              <p
+                className={`m-0 text-sm font-normal tracking-[0.06em] ${scrolled ? "text-slate-400" : "text-white/65"}`}
+              >
+                Computer Engineering
+              </p>
+            </div>
           </div>
 
-          <div className="hidden md:flex items-center gap-1">
-            {[
-              { label: "Home", href: "#" },
-              { label: "Insights", href: "#overview" },
-              { label: "Recruiters", href: "#recruiters" },
-              { label: "Statistics", href: "#highlights" },
-              { label: "Placement", href: "#activities" },
-              { label: "Contact", href: "#contact" },
-            ].map((l) => (
+          <div className="hidden items-center gap-1 md:flex">
+            {navLinks.map((link) => (
               <a
-                key={l.label}
-                href={l.href}
-                className={`px-4 py-1.5 text-sm font-medium rounded transition-colors duration-200 ${
-                  scrolled ? "text-gray-700 hover:text-indigo-600" : "text-white/90 hover:text-white hover:bg-white/10"
+                key={link.label}
+                href={link.href}
+                className={`rounded-md px-3.5 py-1.5 text-md font-medium tracking-[0.02em] transition-colors duration-200 ${
+                  scrolled
+                    ? "text-slate-700 hover:bg-slate-100"
+                    : "text-white/85 hover:bg-white/10"
                 }`}
               >
-                {l.label}
+                {link.label}
               </a>
             ))}
           </div>
 
           <button
             onClick={() => navigate("/dashboard")}
-            className={`text-sm font-semibold px-5 py-2 rounded-full border-2 transition-all duration-200 ${
+            className={`hidden rounded-lg border px-5 py-2 text-md font-semibold tracking-[0.03em] transition-all duration-200 hover:-translate-y-0.5 md:inline-flex ${
               scrolled
-                ? "border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white"
-                : "border-white text-white hover:bg-white hover:text-gray-900"
+                ? "border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700"
+                : "border-white/70 bg-transparent text-white hover:bg-white/10"
             }`}
           >
-            Login
+            Login →
+          </button>
+
+          <button
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border transition-all duration-200 md:hidden ${
+              scrolled
+                ? "border-slate-200 bg-white text-slate-900"
+                : "border-white/40 bg-white/10 text-white"
+            }`}
+          >
+            {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
+
+        {mobileMenuOpen && (
+          <div className="border-t border-white/10 bg-slate-950/95 px-4 pb-4 pt-3 backdrop-blur md:hidden">
+            <div className="flex flex-col gap-1">
+              {navLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-md px-3 py-2 text-sm font-medium text-white/85 transition-colors duration-200 hover:bg-white/10"
+                >
+                  {link.label}
+                </a>
+              ))}
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate("/dashboard");
+                }}
+                className="mt-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700"
+              >
+                Login →
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* ── Hero Carousel ── */}
-      <section className="relative h-screen min-h-[520px] overflow-hidden bg-slate-950">
-        {heroSlides.map((s, i) => (
+      <section className="relative h-svh min-h-screen overflow-hidden bg-slate-950">
+        {heroSlides.map((slideItem, index) => (
           <div
-            key={i}
-            className="absolute inset-0 transition-opacity duration-1000"
-            style={{ opacity: slide === i ? 1 : 0 }}
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-out ${slide === index ? "opacity-100" : "opacity-0"}`}
           >
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url('${s.bg}')` }}
+            <img
+              src={slideItem.bg}
+              alt=""
+              aria-hidden="true"
+              className="h-full w-full object-cover object-[center_30%]"
             />
           </div>
         ))}
 
-        {/* Left dark overlay fading right */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: "linear-gradient(to right, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.55) 38%, rgba(0,0,0,0.15) 60%, transparent 80%)",
-          }}
-        />
-        {/* Bottom fade */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.30) 0%, transparent 35%)" }}
-        />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(108deg,rgba(7,15,28,0.94)_0%,rgba(7,15,28,0.82)_38%,rgba(7,15,28,0.42)_72%,transparent_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_82%,rgba(245,158,11,0.2)_0%,transparent_38%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(7,15,28,0.72)_0%,transparent_26%)]" />
 
-       
-        {/* Content */}
-        <div className="relative h-full flex items-center">
-          <div className="pl-[104px] sm:pl-[116px] pr-6 max-w-[56%]">
-            <p className="text-amber-300 text-[11px] sm:text-xs font-semibold tracking-[0.2em] uppercase mb-5">
-              {heroSlides[slide].tag}
-            </p>
-            <h1 className="text-white leading-[1.15]">
-              <span className="block text-2xl sm:text-3xl lg:text-4xl font-light italic mb-1">
+        <div className="relative flex h-full items-end pb-18 pt-28 sm:items-center sm:pb-0 sm:pt-24">
+          <div className="w-full max-w-none px-5 sm:px-6 lg:max-w-[58%] lg:pl-[clamp(24px,8vw,120px)]">
+            <span className="mb-4 inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-white/90 backdrop-blur">
+              NAAC A+ Accredited Institute
+            </span>
+
+            <h1 className="mb-7 animate-[fadeUp_0.7s_ease_both] leading-[1.12] [animation-delay:140ms]">
+              <span className="mb-1 block font-display text-[clamp(1.6rem,3.2vw,2.4rem)] font-normal italic text-white/75">
                 {heroSlides[slide].line1}
               </span>
-              <span className="block text-2xl sm:text-3xl lg:text-4xl font-light italic text-amber-300 mb-1">
+              <span className="mb-1 block font-display text-[clamp(1.8rem,3.8vw,3rem)] font-normal italic text-amber-300">
                 {heroSlides[slide].line2}
               </span>
-              <span className="block text-2xl sm:text-[2rem] lg:text-[2.4rem] font-extrabold">
+              <span className="block font-body text-[clamp(1.8rem,3.8vw,3rem)] font-extrabold tracking-[-0.01em] text-white">
                 {heroSlides[slide].line3}
               </span>
             </h1>
-            <div className="flex flex-wrap gap-3 mt-8">
-              <Link
-                to="/placements/overview"
-                className="bg-amber-500 hover:bg-amber-400 text-black font-bold text-sm px-6 py-2.5 rounded-lg transition-all flex items-center gap-2 shadow-lg"
-              >
+
+            <p className="mb-9 max-w-120 animate-[fadeUp_0.7s_ease_both] text-sm leading-7 text-white/70 [animation-delay:260ms]">
+              Explore 4 years of placement data, top recruiters, and salary
+              trends from our campus recruitment cell.
+            </p>
+
+            <div className="flex flex-wrap gap-3 animate-[fadeUp_0.7s_ease_both] [animation-delay:400ms]">
+              <Link to="/placements/overview" className={primaryButtonClass}>
                 View Insights <ArrowRight size={15} />
               </Link>
               <button
                 onClick={() => navigate("/dashboard")}
-                className="border border-white/50 text-white text-sm px-6 py-2.5 rounded-lg hover:bg-white/10 transition-all"
+                className={secondaryButtonClass}
               >
-                Login
+                Login to Dashboard
               </button>
             </div>
+
+            
           </div>
         </div>
 
-  
-      </section>
-
-
-      {/* ── Placement Insights Overview ── */}
-      <section id="overview" className="max-w-7xl mx-auto px-4 sm:px-6 py-16 sm:py-20">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Placement Insights Overview</h2>
-          <p className="text-gray-500 mt-2 text-sm">Year-wise placement highlights for Computer Engineering</p>
+        <div className="absolute bottom-7 left-1/2 flex -translate-x-1/2 gap-2 sm:bottom-8">
+          {heroSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goTo(index)}
+              className={`h-1 rounded-full border-0 transition-all duration-300 ${slide === index ? "w-11 bg-amber-500" : "w-7 bg-white/30"}`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-1">
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">1</p>
-                <h3 className="text-base font-semibold text-gray-800">Year-wise Placements</h3>
-              </div>
-              <Link to="/placements/overview" className="text-xs text-indigo-600 hover:underline font-medium">View all →</Link>
-            </div>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={overviewTrend} margin={{ top: 24, right: 8, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="placedGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" />
-                    <stop offset="100%" stopColor="#a5b4fc" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="year" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                <Tooltip cursor={{ fill: "rgba(99,102,241,0.06)" }} />
-                <Bar dataKey="placed" fill="url(#placedGrad)" radius={[6, 6, 0, 0]} maxBarSize={44}>
-                  <LabelList dataKey="placed" position="top" style={{ fontSize: 11, fill: "#4f46e5", fontWeight: 700 }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-center justify-between mb-1">
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">2</p>
-                <h3 className="text-base font-semibold text-gray-800">Companies Visited</h3>
-              </div>
-              <Link to="/placements/companies" className="text-xs text-indigo-600 hover:underline font-medium">View all →</Link>
-            </div>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={companiesVisitedTrend} margin={{ top: 24, right: 8, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="compGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#6ee7b7" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="year" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                <Tooltip cursor={{ fill: "rgba(16,185,129,0.06)" }} />
-                <Bar dataKey="companiesVisited" fill="url(#compGrad)" radius={[6, 6, 0, 0]} maxBarSize={44}>
-                  <LabelList dataKey="companiesVisited" position="top" style={{ fontSize: 11, fill: "#059669", fontWeight: 700 }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          
+        <div className="absolute bottom-7 right-9 flex items-center gap-2">
+          <span className="text-[0.65rem] uppercase tracking-[0.12em] text-white/30">
+            Scroll
+          </span>
+          <ChevronDown size={14} className="text-white/30" />
         </div>
       </section>
 
-      {/* ── Top Recruiters ── */}
-      <section id="recruiters" className="py-14 bg-gray-50 border-y border-gray-100">
-        <div className="max-w-7xl mx-auto px-2 sm:px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Our Top Recruiters</h2>
-            <p className="text-gray-500 mt-2 text-sm">Leading companies that recruit from KKWIEER Computer Engineering</p>
-          </div>
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
-            {recruiterHighlights.map((company) => (
-              <div key={company.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all duration-200 p-4 flex flex-col items-center gap-3">
-                <div className="h-30 w-full flex items-center justify-center">
-                  <img src={company.logo} alt={company.name} className=" max-w-full object-contain" loading="lazy" />
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {statStripItems.map((item) => (
+              <div
+                key={item.label}
+                className={`flex flex-col items-center gap-2 border-b border-slate-200 px-8 py-9 text-center lg:border-b-0 ${item.borderClass}`}
+              >
+                <div
+                  className={`mb-1 flex h-11 w-11 items-center justify-center rounded-xl ${item.bgClass}`}
+                >
+                  <item.icon size={20} className={item.iconClass} />
                 </div>
-                <p className="text-xs font-semibold text-gray-700 text-center">{company.name}</p>
+                <p className="m-0 text-[2.2rem] font-extrabold leading-none tracking-[-0.02em] text-slate-950">
+                  <AnimatedCounter target={item.val} suffix={item.suffix} />
+                </p>
+                <p className="m-0 text-[0.78rem] font-medium text-slate-500">
+                  {item.label}
+                </p>
+                <div
+                  className={`mt-0.5 h-0.5 w-7 rounded-full ${item.iconClass.replace("text-", "bg-")} opacity-50`}
+                />
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Stats Banner ── */}
-      <section id="highlights" className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-700 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-white text-center">
-            {[
-              { icon: GraduationCap, val: "845", label: "Students Placed" },
-              { icon: Building2, val: "112", label: "Companies Visited" },
-              { icon: TrendingUp, val: "36.5 LPA", label: "Highest Package" },
-              { icon: BarChart2, val: "6.2 LPA", label: "Average Package" },
-            ].map((item) => (
-              <div key={item.label} className="flex flex-col items-center gap-2">
-                <item.icon size={28} className="text-white/70" />
-                <p className="text-3xl sm:text-4xl font-extrabold">{item.val}</p>
-                <p className="text-sm text-white/70">{item.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Placement Highlights ── */}
-      <section className="py-16 sm:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Placement Highlights @ KKWagh</h2>
-            <p className="text-gray-500 mt-2 text-sm">What makes our placement record stand out</p>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { val: "500+", label: "Placed in 2024", color: "bg-indigo-50 border-indigo-100", text: "text-indigo-700" },
-                { val: "90%", label: "Placement rate", color: "bg-emerald-50 border-emerald-100", text: "text-emerald-700" },
-                { val: "Top Packages", label: "In core industries", color: "bg-amber-50 border-amber-100", text: "text-amber-700" },
-                { val: "Strong", label: "Alumni network", color: "bg-violet-50 border-violet-100", text: "text-violet-700" },
-              ].map((h) => (
-                <div key={h.label} className={`${h.color} border rounded-2xl p-5`}>
-                  <p className={`text-xl font-bold ${h.text}`}>{h.val}</p>
-                  <p className="text-sm text-gray-600 mt-1">{h.label}</p>
-                </div>
-              ))}
-            </div>
-            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-6 flex flex-col justify-between gap-4">
+      <section id="overview" className="bg-[#faf9f7] px-6 py-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-13">
+            <p className={sectionLabelClass}>Analytics</p>
+            <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <div className="flex gap-1 mb-3">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-amber-400 text-lg">★</span>
-                  ))}
-                </div>
-                <p className="text-gray-700 text-sm leading-relaxed italic">"{testimonial.quote}"</p>
+                <h2 className={sectionHeadingClass}>
+                  Placement Insights <em>Overview</em>
+                </h2>
+                <p className={sectionSubClass}>
+                  Year-wise placement highlights for Computer Engineering
+                </p>
               </div>
-              <div className="flex items-center gap-3 pt-3 border-t border-gray-200">
-                <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-                  {testimonial.name[0]}
-                </div>
+              <Link
+                to="/placements/overview"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#d4daff] bg-[#eef1ff] px-4 py-2 text-[0.8rem] font-semibold text-indigo-600 transition-colors duration-200 hover:bg-[#e3e8ff]"
+              >
+                View Full Report <ArrowRight size={13} />
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_28px_rgba(0,0,0,0.07)] transition-shadow duration-200 hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+              <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{testimonial.name}</p>
-                  <p className="text-xs text-gray-500">{testimonial.role}</p>
+                  <p className="m-0 text-[0.9rem] font-bold text-slate-950">
+                    Year-wise Placements
+                  </p>
+                  <p className="mt-1 text-[0.73rem] text-slate-400">
+                    Students placed per academic year
+                  </p>
+                </div>
+                <span className="rounded-full bg-[#eef1ff] px-2.5 py-1 text-[0.65rem] font-bold tracking-widest text-indigo-600">
+                  2021-25
+                </span>
+              </div>
+              <ResponsiveContainer width="100%" height={210}>
+                <BarChart
+                  data={overviewTrend}
+                  margin={{ top: 20, right: 4, left: -18, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="placedGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3b56de" />
+                      <stop offset="100%" stopColor="#7c99f0" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    vertical={false}
+                    strokeDasharray="2 4"
+                    stroke="#f0f2f8"
+                  />
+                  <XAxis
+                    dataKey="year"
+                    tick={{
+                      fontSize: 11,
+                      fill: "#94a3b8",
+                      fontFamily: "Outfit, sans-serif",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{
+                      fontSize: 11,
+                      fill: "#94a3b8",
+                      fontFamily: "Outfit, sans-serif",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip color="#3b56de" />} />
+                  <Bar
+                    dataKey="placed"
+                    fill="url(#placedGrad)"
+                    radius={[5, 5, 0, 0]}
+                    maxBarSize={40}
+                  >
+                    <LabelList
+                      dataKey="placed"
+                      position="top"
+                      style={{
+                        fontSize: 10,
+                        fill: "#3b56de",
+                        fontWeight: 700,
+                        fontFamily: "Outfit, sans-serif",
+                      }}
+                    />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_8px_28px_rgba(0,0,0,0.07)] transition-shadow duration-200 hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <p className="m-0 text-[0.9rem] font-bold text-slate-950">
+                    Companies Visited
+                  </p>
+                  <p className="mt-1 text-[0.73rem] text-slate-400">
+                    Recruiters visiting campus each year
+                  </p>
+                </div>
+                <span className="rounded-full bg-[#ecfdf5] px-2.5 py-1 text-[0.65rem] font-bold tracking-widest text-emerald-600">
+                  2021-25
+                </span>
+              </div>
+              <ResponsiveContainer width="100%" height={210}>
+                <BarChart
+                  data={companiesVisitedTrend}
+                  margin={{ top: 20, right: 4, left: -18, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="compGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#059669" />
+                      <stop offset="100%" stopColor="#6ee7b7" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    vertical={false}
+                    strokeDasharray="2 4"
+                    stroke="#f0f2f8"
+                  />
+                  <XAxis
+                    dataKey="year"
+                    tick={{
+                      fontSize: 11,
+                      fill: "#94a3b8",
+                      fontFamily: "Outfit, sans-serif",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{
+                      fontSize: 11,
+                      fill: "#94a3b8",
+                      fontFamily: "Outfit, sans-serif",
+                    }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip color="#059669" />} />
+                  <Bar
+                    dataKey="companiesVisited"
+                    fill="url(#compGrad)"
+                    radius={[5, 5, 0, 0]}
+                    maxBarSize={40}
+                  >
+                    <LabelList
+                      dataKey="companiesVisited"
+                      position="top"
+                      style={{
+                        fontSize: 10,
+                        fill: "#059669",
+                        fontWeight: 700,
+                        fontFamily: "Outfit, sans-serif",
+                      }}
+                    />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="recruiters" className="bg-white py-24">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="mb-13 text-center">
+            <p className={sectionLabelClass}>Industry Partners</p>
+            <h2 className={sectionHeadingClass}>
+              Our Top <em>Recruiters</em>
+            </h2>
+            <p className="mx-auto mt-2.5 max-w-120 text-[0.85rem] text-slate-500">
+              Leading companies that recruit from KKWIEER Computer Engineering
+            </p>
+          </div>
+
+          <div className="mb-4 overflow-hidden">
+            <div className="marquee-track flex w-max items-stretch gap-5 animate-[marquee_32s_linear_infinite] hover:[animation-play-state:paused] py-10">
+              {[...recruiterHighlights, ...recruiterHighlights].map(
+                (company, index) => (
+                  <div
+                    key={`${company.id}-${index}`}
+                    className="flex min-w-32.5 shrink-0 flex-col items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-7 py-4 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-600 hover:shadow-[0_8px_24px_rgba(59,86,222,0.12)]"
+                  >
+                    <div className="flex h-20 items-center justify-center">
+                      <img
+                        src={company.logo}
+                        alt={company.name}
+                        loading="lazy"
+                        className="max-h-11 max-w-25 object-contain grayscale-20"
+                      />
+                    </div>
+                    <p className="m-0 text-center text-md font-semibold text-slate-600">
+                      {company.name}
+                    </p>
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+
+          <div className="overflow-hidden">
+            <div className="marquee-track-rev flex w-max items-stretch gap-5 animate-[marqueeReverse_36s_linear_infinite]">
+              {[
+                ...recruiterHighlights.slice().reverse(),
+                ...recruiterHighlights.slice().reverse(),
+              ].map((company, index) => (
+                <div
+                  key={`${company.id}-rev-${index}`}
+                  className="flex min-w-32.5 shrink-0 flex-col items-center gap-2.5 rounded-xl border border-slate-200 bg-[#faf9f7] px-7 py-4 transition-all duration-200 hover:-translate-y-1 hover:border-indigo-600 hover:shadow-[0_8px_24px_rgba(59,86,222,0.12)]"
+                >
+                  <div className="flex h-18 items-center justify-center">
+                    <img
+                      src={company.logo}
+                      alt={company.name}
+                      loading="lazy"
+                      className="max-h-11 max-w-25 object-contain grayscale-20"
+                    />
+                  </div>
+                  <p className="m-0 text-center text-[0.72rem] font-semibold text-slate-600">
+                    {company.name}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="highlights"
+        className="relative overflow-hidden bg-slate-950 px-6 py-20"
+      >
+        <div className="pointer-events-none absolute -right-24 -top-24 h-100 w-100 rounded-full bg-[radial-gradient(circle,rgba(59,86,222,0.15)_0%,transparent_65%)]" />
+        <div className="pointer-events-none absolute -bottom-20 left-[20%] h-75 w-75 rounded-full bg-[radial-gradient(circle,rgba(232,160,32,0.1)_0%,transparent_65%)]" />
+
+        <div className="relative mx-auto max-w-7xl">
+          <div className="mb-14 text-center">
+            <p className="mb-2.5 font-body text-[0.68rem] font-bold uppercase tracking-[0.18em] text-amber-500">
+              By The Numbers
+            </p>
+            <h2 className="font-display text-[clamp(1.7rem,3vw,2.2rem)] font-normal text-white">
+              Placement <em>Milestones</em>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {milestoneItems.map((item) => (
+              <div
+                key={item.label}
+                className={`px-6 py-8 text-center ${item.border ? "border-l border-white/10" : ""}`}
+              >
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/5">
+                  <item.icon size={22} className={item.color} />
+                </div>
+                <p className="mb-1 text-[2.4rem] font-extrabold leading-none tracking-[-0.02em] text-white">
+                  <AnimatedCounter target={item.val} suffix={item.suffix} />
+                </p>
+                <p className="mb-1 text-[0.82rem] font-semibold text-white/75">
+                  {item.label}
+                </p>
+                <p className="m-0 text-[0.72rem] text-white/35">{item.sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <footer id="contact" className="bg-[#070f1c] px-6 pb-8 pt-16">
+        <div className="mx-auto max-w-7xl">
+          
+
+          <div className="mb-12 grid gap-12 lg:grid-cols-[1.4fr_1fr_1.2fr]">
+            <div>
+              <div className="mb-4 flex items-center gap-3">
+                <img
+                  src={logo}
+                  alt="KKWagh"
+                  className="h-9 w-auto object-contain brightness-0 invert opacity-85"
+                />
+                <div className="border-l border-white/10 pl-3">
+                  <p className="m-0 text-[0.82rem] font-bold text-white">
+                    KKWIEER
+                  </p>
+                  <p className="m-0 text-[0.65rem] tracking-[0.06em] text-white/40">
+                    Placement Analytics
+                  </p>
                 </div>
               </div>
+              <p className="mb-5 max-w-70 text-[0.8rem] leading-7 text-white/40">
+                Empowering futures through transparent placement data and
+                analytics for Computer Engineering students.
+              </p>
+              <div className="flex gap-2">
+                {["in", "tw", "fb", "ig"].map((social) => (
+                  <a
+                    key={social}
+                    href="#"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-[0.65rem] font-bold uppercase text-white/40 transition-all duration-200 hover:bg-indigo-600 hover:text-white"
+                  >
+                    {social}
+                  </a>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      
-
-      {/* ── Recent Activities ── */}
-      <section id="activities" className="py-16 sm:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
             <div>
-              <p className="text-xs font-semibold tracking-widest uppercase text-indigo-600 mb-2">Campus Highlights</p>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Recent Activities</h2>
-              <p className="text-gray-500 text-sm mt-1">Workshops, hackathons, expert sessions, and placement drives from 2025.</p>
+              <h4 className="mb-5 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-white/90">
+                Quick Links
+              </h4>
+              <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+                {quickLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      to={link.to}
+                      className="flex items-center gap-1.5 text-[0.82rem] text-white/40 transition-colors duration-200 hover:text-white"
+                    >
+                      <span className="text-[0.6rem] text-indigo-600">▶</span>{" "}
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <Link to="/activities/overview" className="hidden md:inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors">
-              View All <ArrowRight size={15} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {activities.map((a) => {
-              const formattedDate = new Date(a.date).toLocaleDateString("en-IN", {
-                day: "2-digit", month: "short", year: "numeric",
-              });
-              return (
-                <article key={a.id} className="group overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                  <div className="relative h-44 overflow-hidden">
-                    <img src={a.image} alt={a.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <span className="absolute left-3 top-3 text-[11px] font-semibold bg-white text-gray-800 px-2.5 py-1 rounded-full shadow-sm">
-                      {a.category}
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <h3 className="text-sm font-semibold text-gray-900 leading-snug mb-2">{a.title}</h3>
-                    <p className="text-xs text-gray-500 leading-relaxed mb-4">{a.description}</p>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{formattedDate}</span>
-                      <span className="bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full font-medium">{a.participants} participants</span>
+
+            <div>
+              <h4 className="mb-5 text-[0.78rem] font-semibold uppercase tracking-[0.08em] text-white/90">
+                Contact
+              </h4>
+              <div className="flex flex-col gap-3.5">
+                {footerContacts.map(({ Icon, text, href }) => (
+                  <div key={text} className="flex items-start gap-2.5">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-indigo-600/15">
+                      <Icon size={13} className="text-indigo-400" />
                     </div>
+                    {href ? (
+                      <a
+                        href={href}
+                        className="text-[0.8rem] leading-6 text-white/40 transition-colors duration-200 hover:text-white"
+                      >
+                        {text}
+                      </a>
+                    ) : (
+                      <p className="m-0 text-[0.8rem] leading-6 text-white/40">
+                        {text}
+                      </p>
+                    )}
                   </div>
-                </article>
-              );
-            })}
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="md:hidden text-center mt-8">
-            <Link to="/activities/overview" className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2.5 rounded-xl text-sm font-medium">
-              View All <ArrowRight size={15} />
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      {/* ── CTA Banner ── */}
-      <section className="py-10 bg-gradient-to-r from-indigo-600 to-violet-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <p className="text-white font-bold text-lg sm:text-xl">Ready to explore placement insights?</p>
-            <p className="text-indigo-200 text-sm mt-0.5">Unlock data-driven decisions.</p>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-6">
+            <p className="m-0 text-[0.74rem] text-white/25">
+              © 2025 Computer Engineering Department, K. K. Wagh Institute. All
+              rights reserved.
+            </p>
+            <p className="m-0 text-[0.74rem] text-white/20">
+              Built by Training & Placement Office
+            </p>
           </div>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="bg-white text-indigo-700 font-semibold px-6 py-3 rounded-xl hover:bg-indigo-50 transition-colors whitespace-nowrap shadow-md"
-          >
-            View Dashboard
-          </button>
-        </div>
-      </section>
-
-      {/* ── Footer ── */}
-      <footer id="contact" className="bg-gray-950 text-gray-400 pt-14 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <img src={logo} alt="KKWagh" className="w-9 h-9 object-contain brightness-200" />
-              <div>
-                <p className="text-white font-bold text-sm">KKWagh</p>
-                <p className="text-xs text-gray-500">Placement Analytics</p>
-              </div>
-            </div>
-            <p className="text-sm leading-relaxed text-gray-500">Empowering futures through data.</p>
-            <div className="flex gap-3 mt-5">
-              {["in", "tw", "fb", "ig"].map((s) => (
-                <a key={s} href="#" className="w-8 h-8 rounded-full bg-gray-800 hover:bg-indigo-600 flex items-center justify-center text-xs text-gray-400 hover:text-white transition-colors uppercase font-bold">
-                  {s}
-                </a>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold text-sm mb-4">Quick Links</h4>
-            <ul className="space-y-2.5 text-sm">
-              {[
-                { label: "Home", to: "/" },
-                { label: "Insights", to: "/placements/overview" },
-                { label: "Recruiters", to: "/placements/companies" },
-                { label: "Statistics", to: "/analytics" },
-                { label: "Contact", to: "#contact" },
-                { label: "Privacy Policy", to: "#" },
-              ].map((l) => (
-                <li key={l.label}>
-                  <Link to={l.to} className="hover:text-white transition-colors">{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold text-sm mb-4">Contact</h4>
-            <div className="space-y-3 text-sm">
-              <div className="flex items-start gap-2.5">
-                <MapPin size={15} className="mt-0.5 text-indigo-400 shrink-0" />
-                <p className="text-gray-500 leading-relaxed">K. K. Wagh Institute of Engineering Education and Research, Nashik, Maharashtra</p>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <Mail size={15} className="text-indigo-400 shrink-0" />
-                <a href="mailto:placement@kkwagh.edu.in" className="hover:text-white transition-colors">placement@kkwagh.edu.in</a>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <Phone size={15} className="text-indigo-400 shrink-0" />
-                <a href="tel:+912532510371" className="hover:text-white transition-colors">+91 253 251 0371</a>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 border-t border-gray-800 text-center text-xs text-gray-600">
-          © 2025 Computer Engineering Department, K. K. Wagh Institute. All rights reserved.
         </div>
       </footer>
-
     </div>
   );
 }
