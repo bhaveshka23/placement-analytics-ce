@@ -42,13 +42,7 @@ const recruiterHighlights = [
 ];
 
 const heroSlides = [
-  {
-    bg: "/header.png",
-    
-    line1: "From data to decisions:",
-    line2: "Empowering",
-    line3: "Placement Excellence",
-  },
+  
   {
     bg: "/header1.png",
     line1: "Track. Analyse. Grow:",
@@ -441,34 +435,23 @@ export default function LandingPage() {
           </div>
         ))}
 
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(108deg,rgba(7,15,28,0.94)_0%,rgba(7,15,28,0.82)_38%,rgba(7,15,28,0.42)_72%,transparent_100%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_82%,rgba(245,158,11,0.2)_0%,transparent_38%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_top,rgba(7,15,28,0.72)_0%,transparent_26%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-black/65" />
 
-        <div className="relative flex h-full items-end pb-18 pt-28 sm:items-center sm:pb-0 sm:pt-24">
-          <div className="w-full max-w-none px-5 sm:px-6 lg:max-w-[58%] lg:pl-[clamp(24px,8vw,120px)]">
-            <span className="mb-4 inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-white/90 backdrop-blur">
-              NAAC A+ Accredited Institute
-            </span>
-
-            <h1 className="mb-7 animate-[fadeUp_0.7s_ease_both] leading-[1.12] [animation-delay:140ms]">
-              <span className="mb-1 block font-display text-[clamp(1.6rem,3.2vw,2.4rem)] font-normal italic text-white/75">
-                {heroSlides[slide].line1}
-              </span>
-              <span className="mb-1 block font-display text-[clamp(1.8rem,3.8vw,3rem)] font-normal italic text-amber-300">
-                {heroSlides[slide].line2}
-              </span>
-              <span className="block font-body text-[clamp(1.8rem,3.8vw,3rem)] font-extrabold tracking-[-0.01em] text-white">
-                {heroSlides[slide].line3}
-              </span>
+        <div className="relative flex h-full items-center justify-center px-5 pt-24 text-center sm:px-6">
+          <div className="w-full max-w-4xl">
+            <p className="mb-3 animate-[fadeUp_0.7s_ease_both] text-[clamp(0.95rem,1.8vw,1.2rem)] font-semibold uppercase tracking-[0.22em] text-amber-500 [animation-delay:90ms]">
+              Department of
+            </p>
+            <h1 className="mb-6 animate-[fadeUp_0.7s_ease_both] font-body text-5xl md:text-[clamp(2.2rem,7vw,5.2rem)] font-extrabold leading-[1.05] tracking-[-0.02em]  text-white [animation-delay:140ms]">
+              Computer Engineering
             </h1>
 
-            <p className="mb-9 max-w-120 animate-[fadeUp_0.7s_ease_both] text-sm leading-7 text-white/70 [animation-delay:260ms]">
+            <p className="mx-auto mb-9 max-w-3xl animate-[fadeUp_0.7s_ease_both] text-base leading-8 text-white/70 [animation-delay:260ms] sm:text-lg">
               Explore 4 years of placement data, top recruiters, and salary
               trends from our campus recruitment cell.
             </p>
 
-            <div className="flex flex-wrap gap-3 animate-[fadeUp_0.7s_ease_both] [animation-delay:400ms]">
+            <div className="flex flex-wrap items-center justify-center gap-3 animate-[fadeUp_0.7s_ease_both] [animation-delay:400ms]">
               <Link to="/placements/overview" className={primaryButtonClass}>
                 View Insights <ArrowRight size={15} />
               </Link>

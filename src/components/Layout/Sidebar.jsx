@@ -108,25 +108,25 @@ export default function Sidebar({ isOpen }) {
           </DropdownSection>
         </div>
 
-        {/* <div className="pt-2">
+        <div className="pt-2">
           <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Internships</p>
           <DropdownSection label="Internships" icon={Building2} defaultOpen={location.pathname.startsWith('/internships')}>
             <NavItem to="/internships/overview">Overview</NavItem>
             {years.map(y => <NavItem key={y} to={`/internships/${y}`}>{y}</NavItem>)}
           </DropdownSection>
-        </div> */}
+        </div>
 
-        <div className="pt-2">
+        {/* <div className="pt-2">
           <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Activities</p>
           <DropdownSection label="Activities" icon={Activity} defaultOpen={location.pathname.startsWith('/activities')}>
             <NavItem to="/activities/overview">Overview</NavItem>
             {years.map(y => <NavItem key={y} to={`/activities/${y}`}>{y}</NavItem>)}
           </DropdownSection>
-        </div>
+        </div> */}
 
         <div className="pt-2">
           <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">More</p>
-          <NavItem to="/analytics" icon={BarChart2}>Analytics</NavItem>
+          
           <NavItem to="/settings" icon={Settings}>Settings</NavItem>
         </div>
       </nav>
