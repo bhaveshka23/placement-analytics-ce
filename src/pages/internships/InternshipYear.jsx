@@ -4,10 +4,10 @@ import { internshipsData } from '../../data/internshipsData';
 import { Users, Building2, Award, TrendingUp } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
+  Legend, PieChart, Pie, Cell
 } from 'recharts';
 
-const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#14b8a6'];
+const PIE_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ec4899', '#14b8a6', '#06b6d4'];
 
 export default function InternshipYear() {
   const { year } = useParams();
@@ -27,9 +27,21 @@ export default function InternshipYear() {
 
   const kpis = [
     { label: 'Total Interns', value: data.totalInterns, icon: Users, color: 'bg-indigo-50 text-indigo-600' },
-    { label: 'Avg Stipend', value: `₹${(data.avgStipend / 1000).toFixed(0)}K/mo`, icon: Award, color: 'bg-amber-50 text-amber-600' },
+    { label: 'Highest Stipend', value: `₹${(data.avgStipend / 1000).toFixed(0)}K/mo`, icon: Award, color: 'bg-amber-50 text-amber-600' },
     { label: 'Conversion Rate', value: `${data.conversionRate}%`, icon: TrendingUp, color: 'bg-green-50 text-green-600' },
     { label: 'Companies', value: data.companiesVisited, icon: Building2, color: 'bg-purple-50 text-purple-600' },
+  ];
+
+  const placementData = [
+    { status: 'With Placement', count: data.students.filter(s => s.converted).length },
+    { status: 'Without Placement', count: data.students.filter(s => !s.converted).length },
+  ];
+
+  const stipendDistributionData = data.stipendDistribution;
+
+  const paidVsNonPaidData = [
+    { type: 'Paid', count: data.students.filter(s => Number(s.stipend) > 0).length },
+    { type: 'Non-Paid', count: data.students.filter(s => Number(s.stipend) <= 0).length },
   ];
 
   return (
@@ -65,16 +77,16 @@ export default function InternshipYear() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4">Monthly Intern Intake</h3>
+            <h3 className="text-sm font-semibold text-gray-700 mb-4">Internship with Placement</h3>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={data.monthlyTrend}>
+              <BarChart data={placementData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <XAxis dataKey="status" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Bar dataKey="interns" fill="#6366f1" radius={[4, 4, 0, 0]} name="Interns" />
+                <Bar dataKey="count" fill="#16a34a" radius={[4, 4, 0, 0]} name="Students" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -83,12 +95,37 @@ export default function InternshipYear() {
             <h3 className="text-sm font-semibold text-gray-700 mb-4">Stipend Distribution</h3>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={data.stipendDistribution} dataKey="count" nameKey="range" cx="50%" cy="50%" outerRadius={80} innerRadius={40} paddingAngle={3}>
-                  {data.stipendDistribution.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                <Pie
+                  data={stipendDistributionData}
+                  dataKey="count"
+                  nameKey="range"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={78}
+                  innerRadius={36}
+                  paddingAngle={2}
+                >
+                  {stipendDistributionData.map((entry, i) => (
+                    <Cell key={`${entry.range}-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                  ))}
                 </Pie>
                 <Tooltip />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
               </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4">Paid vs Non-Paid</h3>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={paidVsNonPaidData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="type" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Students" />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
