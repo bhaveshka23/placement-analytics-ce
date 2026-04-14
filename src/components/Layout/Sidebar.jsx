@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ChevronDown, ChevronRight,
-  Briefcase, GraduationCap, Activity, BarChart2, Settings, Building2
+  Briefcase, GraduationCap, Activity, BarChart2, Settings, Building2,
+  UploadCloud, Edit3, Trash2, Eye, PlusCircle, LogOut
 } from 'lucide-react';
 import { getPlacementYears } from '../../services/placementsApi';
 import { getInternshipYears } from '../../services/internshipsApi';
+import { logoutUser } from '../../services/authApi';
 
 function NavItem({ to, children, icon: Icon }) {
   return (
@@ -50,8 +52,12 @@ function DropdownSection({ label, icon: Icon, children, defaultOpen = false }) {
 
 export default function Sidebar({ isOpen }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [placementYears, setPlacementYears] = useState([]);
   const [internshipYears, setInternshipYears] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(
+    () => localStorage.getItem('isAdmin') === 'true'
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -88,6 +94,23 @@ export default function Sidebar({ isOpen }) {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    setIsAdmin(localStorage.getItem('isAdmin') === 'true');
+  }, [location.pathname]);
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // Ignore logout failures and clear client state.
+    }
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    navigate('/');
+  };
 
   return (
     <aside
@@ -138,11 +161,31 @@ export default function Sidebar({ isOpen }) {
           </DropdownSection>
         </div> */}
 
-        <div className="pt-2">
-          <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">More</p>
-          
-          <NavItem to="/settings" icon={Settings}>Settings</NavItem>
-        </div>
+        
+
+        {isAdmin && (
+          <div className="pt-2">
+            <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Admin</p>
+
+            <DropdownSection label="Upload Data" icon={UploadCloud}>
+              <NavItem to="/admin/upload/placements">Placements</NavItem>
+              <NavItem to="/admin/upload/internships">Internships</NavItem>
+            </DropdownSection>
+
+            <DropdownSection label="Edit Data" icon={Edit3}>
+              <NavItem to="/admin/edit/placements">Placements</NavItem>
+              <NavItem to="/admin/edit/internships">Internships</NavItem>
+            </DropdownSection>
+
+            <button
+              onClick={handleLogout}
+              className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          </div>
+        )}
       </nav>
 
       <div className="px-4 py-3 border-t border-gray-100 shrink-0">

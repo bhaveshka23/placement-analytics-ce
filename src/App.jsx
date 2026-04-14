@@ -7,7 +7,27 @@ import PlacementYear from './pages/placements/PlacementYear';
 import Companies from './pages/placements/Companies';
 import InternshipOverview from './pages/internships/InternshipOverview';
 import InternshipYear from './pages/internships/InternshipYear';
-import Settings from './pages/Settings';
+import AdminAction from './pages/AdminAction';
+
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const token = localStorage.getItem('authToken');
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+}
 
 
 export default function App() {
@@ -16,19 +36,68 @@ export default function App() {
       <SmoothScroll>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/dashboard" element={ <Dashboard />}/>
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Placements */}
-          <Route path="/placements/overview" element={<PlacementOverview />} />
-          <Route path="/placements/companies" element={<Companies />} />
-          <Route path="/placements/:year" element={<PlacementYear />} />
+          <Route
+            path="/placements/overview"
+            element={
+              <ProtectedRoute>
+                <PlacementOverview />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/placements/companies"
+            element={
+              <ProtectedRoute>
+                <Companies />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/placements/:year"
+            element={
+              <ProtectedRoute>
+                <PlacementYear />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Internships */}
-          <Route path="/internships/overview" element={<InternshipOverview />} />
-          <Route path="/internships/:year" element={<InternshipYear />} />
+          <Route
+            path="/internships/overview"
+            element={
+              <ProtectedRoute>
+                <InternshipOverview />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/internships/:year"
+            element={
+              <ProtectedRoute>
+                <InternshipYear />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* More */}
-          <Route path="/settings" element={<Settings />} />
+        
+          <Route
+            path="/admin/:action/:scope"
+            element={
+              <AdminRoute>
+                <AdminAction />
+              </AdminRoute>
+            }
+          />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

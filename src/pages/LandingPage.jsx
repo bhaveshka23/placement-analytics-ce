@@ -26,6 +26,12 @@ import {
 } from "recharts";
 import { yearlyComparison } from "../data/placementsData";
 import { activitiesData } from "../data/activitiesData";
+import {
+  adminLogin,
+  adminVerifyOtp,
+  studentSendOtp,
+  studentVerifyOtp,
+} from "../services/authApi";
 import logo from "/kkw-logo.png";
 
 const recruiterHighlights = [
@@ -134,7 +140,20 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [slide, setSlide] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [loginVisible, setLoginVisible] = useState(false);
+  const [loginStep, setLoginStep] = useState("request");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [loginNotice, setLoginNotice] = useState("");
+  const [loginForm, setLoginForm] = useState({
+    role: "student",
+    email: "",
+    password: "",
+  });
+  const [otp, setOtp] = useState("");
   const timerRef = useRef(null);
+  const loginCloseTimerRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -161,6 +180,14 @@ export default function LandingPage() {
     return () => clearInterval(timerRef.current);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (loginCloseTimerRef.current) {
+        clearTimeout(loginCloseTimerRef.current);
+      }
+    };
+  }, []);
+
   const goTo = (index) => {
     clearInterval(timerRef.current);
     setSlide(index);
@@ -168,6 +195,109 @@ export default function LandingPage() {
       () => setSlide((current) => (current + 1) % heroSlides.length),
       5000,
     );
+  };
+
+  const resetLoginFlow = () => {
+    setLoginStep("request");
+    setLoginLoading(false);
+    setLoginError("");
+    setLoginNotice("");
+    setOtp("");
+  };
+
+  const openLogin = () => {
+    if (loginCloseTimerRef.current) {
+      clearTimeout(loginCloseTimerRef.current);
+    }
+    resetLoginFlow();
+    setLoginVisible(true);
+    requestAnimationFrame(() => setLoginOpen(true));
+  };
+
+  const closeLogin = () => {
+    setLoginOpen(false);
+    loginCloseTimerRef.current = setTimeout(() => {
+      setLoginVisible(false);
+      resetLoginFlow();
+    }, 200);
+  };
+
+  const onLoginChange = (event) => {
+    const { name, value } = event.target;
+    setLoginError("");
+    setLoginNotice("");
+    setLoginForm((prev) => {
+      if (name === "role" && value === "student") {
+        setLoginStep("request");
+        setOtp("");
+        return { ...prev, role: value, password: "" };
+      }
+      if (name === "role") {
+        setLoginStep("request");
+        setOtp("");
+      }
+      if (name === "email" && loginStep === "verify") {
+        setLoginStep("request");
+        setOtp("");
+      }
+      return { ...prev, [name]: value };
+    });
+  };
+
+  const onLoginSubmit = async (event) => {
+    event.preventDefault();
+    if (loginLoading) return;
+
+    setLoginLoading(true);
+    setLoginError("");
+    setLoginNotice("");
+
+    try {
+      if (loginStep === "request") {
+        if (loginForm.role === "student") {
+          await studentSendOtp({ email: loginForm.email });
+        } else {
+          await adminLogin({
+            email: loginForm.email,
+            password: loginForm.password,
+          });
+        }
+        setLoginStep("verify");
+        setLoginNotice("OTP sent to your email.");
+      } else {
+        const response =
+          loginForm.role === "student"
+            ? await studentVerifyOtp({
+                email: loginForm.email,
+                otp,
+              })
+            : await adminVerifyOtp({
+                email: loginForm.email,
+                otp,
+              });
+
+        const emailName = loginForm.email.split("@")[0] || "User";
+        const displayName = emailName
+          .split(".")
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(" ");
+
+        localStorage.setItem("authToken", response?.token || "");
+        localStorage.setItem(
+          "isAdmin",
+          response?.is_admin ? "true" : "false",
+        );
+        localStorage.setItem("userName", displayName);
+        localStorage.setItem("userEmail", loginForm.email);
+
+        closeLogin();
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      setLoginError(err?.message || "Login failed.");
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   const overviewTrend = yearlyComparison.filter(
@@ -353,15 +483,15 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="hidden items-center gap-1 md:flex">
+          <div className="hidden items-center gap-1 md:flex ">
             {navLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
                 className={`rounded-md px-3.5 py-1.5 text-md font-medium tracking-[0.02em] transition-colors duration-200 ${
                   scrolled
-                    ? "text-slate-700 hover:bg-slate-100"
-                    : "text-white/85 hover:bg-white/10"
+                    ? "text-black hover:bg-slate-100"
+                    : "text-white hover:bg-white/10"
                 }`}
               >
                 {link.label}
@@ -370,7 +500,7 @@ export default function LandingPage() {
           </div>
 
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={openLogin}
             className={`hidden rounded-lg border px-5 py-2 text-md font-semibold tracking-[0.03em] transition-all duration-200 hover:-translate-y-0.5 md:inline-flex ${
               scrolled
                 ? "border-indigo-600 bg-indigo-600 text-white hover:bg-indigo-700"
@@ -385,7 +515,7 @@ export default function LandingPage() {
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border transition-all duration-200 md:hidden ${
               scrolled
-                ? "border-slate-200 bg-white text-slate-900"
+                ? "border-slate-200 bg-white text-black"
                 : "border-white/40 bg-white/10 text-white"
             }`}
           >
@@ -409,7 +539,7 @@ export default function LandingPage() {
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  navigate("/dashboard");
+                  openLogin();
                 }}
                 className="mt-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700"
               >
@@ -435,7 +565,7 @@ export default function LandingPage() {
           </div>
         ))}
 
-        <div className="pointer-events-none absolute inset-0 bg-black/65" />
+        <div className="pointer-events-none absolute inset-0 bg-black/55" />
 
         <div className="relative flex h-full items-center justify-center px-5 pt-24 text-center sm:px-6">
           <div className="w-full max-w-4xl">
@@ -447,7 +577,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="mx-auto mb-9 max-w-3xl animate-[fadeUp_0.7s_ease_both] text-base leading-8 text-white/70 [animation-delay:260ms] sm:text-lg">
-              Explore 4 years of placement data, top recruiters, and salary
+              Explore placement data, top recruiters, and salary
               trends from our campus recruitment cell.
             </p>
 
@@ -456,7 +586,7 @@ export default function LandingPage() {
                 View Insights <ArrowRight size={15} />
               </Link>
               <button
-                onClick={() => navigate("/dashboard")}
+                onClick={openLogin}
                 className={secondaryButtonClass}
               >
                 Login to Dashboard
@@ -882,6 +1012,166 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {loginVisible && (
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-white/10 px-4 py-8 backdrop-blur-md transition-opacity duration-200 ${
+            loginOpen ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
+        >
+          <div
+            className="absolute inset-0"
+            onClick={closeLogin}
+            aria-hidden="true"
+          />
+          <div
+            className={`relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-[0_24px_60px_rgba(15,23,42,0.35)] transition-all duration-200 ${
+              loginOpen
+                ? "translate-y-0 scale-100 opacity-100"
+                : "translate-y-3 scale-95 opacity-0"
+            }`}
+          >
+            <div className="flex items-center justify-between bg-slate-900 px-6">
+              <div className="flex flex-1 flex-col items-center gap-1">
+                <img
+                  src={logo}
+                  alt="KKWagh"
+                  className="h-34 w-auto object-contain brightness-0 invert"
+                />
+                
+              </div>
+              <button
+                onClick={closeLogin}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 text-white/80 transition-colors hover:bg-white/10"
+                aria-label="Close login"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form className="space-y-4 px-6 py-6" onSubmit={onLoginSubmit}>
+              <div>
+                <label
+                  htmlFor="role"
+                  className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
+                >
+                  Select Role
+                </label>
+                <div className="relative">
+                  <select
+                    id="role"
+                    name="role"
+                    value={loginForm.role}
+                    onChange={onLoginChange}
+                    className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="student">Student</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                  <ChevronDown
+                    size={16}
+                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="email"
+                  className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
+                >
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={loginForm.email}
+                  onChange={onLoginChange}
+                  placeholder="you@kkw.edu.in"
+                  required
+                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
+                <p className="mt-2 text-xs font-medium text-slate-500">
+                  Only @kkwagh.edu.in email IDs are allowed.
+                </p>
+              </div>
+
+              {loginForm.role === "admin" && loginStep === "request" && (
+                <div>
+                  <label
+                    htmlFor="password"
+                    className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
+                  >
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={loginForm.password}
+                    onChange={onLoginChange}
+                    placeholder="Enter your password"
+                    required
+                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
+              )}
+
+              {loginStep === "verify" && (
+                <div>
+                  <label
+                    htmlFor="otp"
+                    className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
+                  >
+                    OTP Code
+                  </label>
+                  <input
+                    id="otp"
+                    name="otp"
+                    type="text"
+                    value={otp}
+                    onChange={(event) => setOtp(event.target.value)}
+                    placeholder="Enter the OTP"
+                    required
+                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  />
+                </div>
+              )}
+
+              {loginError && (
+                <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
+                  {loginError}
+                </div>
+              )}
+
+              {loginNotice && (
+                <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700">
+                  {loginNotice}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loginLoading}
+                className={`w-full rounded-lg px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_12px_28px_rgba(37,99,235,0.3)] transition-all duration-200 ${
+                  loginLoading
+                    ? "cursor-not-allowed bg-blue-400"
+                    : "bg-blue-600 hover:-translate-y-0.5 hover:bg-blue-700"
+                }`}
+              >
+                {loginLoading
+                  ? loginStep === "request"
+                    ? "Sending..."
+                    : "Verifying..."
+                  : loginStep === "request"
+                    ? "Get OTP"
+                    : "Verify OTP"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
