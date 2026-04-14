@@ -5,8 +5,7 @@ import {
   Briefcase, GraduationCap, Activity, BarChart2, Settings, Building2
 } from 'lucide-react';
 import { getPlacementYears } from '../../services/placementsApi';
-
-const years = [2025, 2024, 2023];
+import { getInternshipYears } from '../../services/internshipsApi';
 
 function NavItem({ to, children, icon: Icon }) {
   return (
@@ -52,6 +51,7 @@ function DropdownSection({ label, icon: Icon, children, defaultOpen = false }) {
 export default function Sidebar({ isOpen }) {
   const location = useLocation();
   const [placementYears, setPlacementYears] = useState([]);
+  const [internshipYears, setInternshipYears] = useState([]);
 
   useEffect(() => {
     let mounted = true;
@@ -69,7 +69,21 @@ export default function Sidebar({ isOpen }) {
       }
     }
 
+    async function loadInternshipYears() {
+      try {
+        const response = await getInternshipYears();
+        if (mounted) {
+          setInternshipYears(response.years || []);
+        }
+      } catch {
+        if (mounted) {
+          setInternshipYears([]);
+        }
+      }
+    }
+
     loadPlacementYears();
+    loadInternshipYears();
     return () => {
       mounted = false;
     };
@@ -112,7 +126,7 @@ export default function Sidebar({ isOpen }) {
           <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Internships</p>
           <DropdownSection label="Internships" icon={Building2} defaultOpen={location.pathname.startsWith('/internships')}>
             <NavItem to="/internships/overview">Overview</NavItem>
-            {years.map(y => <NavItem key={y} to={`/internships/${y}`}>{y}</NavItem>)}
+            {internshipYears.map(y => <NavItem key={y} to={`/internships/${y}`}>{y}</NavItem>)}
           </DropdownSection>
         </div>
 

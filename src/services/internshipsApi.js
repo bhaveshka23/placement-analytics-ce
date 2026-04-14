@@ -1,6 +1,8 @@
 import { API_BASE_URL } from './authApi';
 
 const INTERNSHIPS_OVERVIEW_ENDPOINT = '/api/v1/internships/overview/';
+const INTERNSHIPS_YEARS_ENDPOINT = '/api/v1/internships/years/';
+const INTERNSHIPS_YEAR_DETAIL_ENDPOINT = '/api/v1/internships';
 
 async function parseJsonResponse(response) {
   try {
@@ -43,6 +45,36 @@ export async function getInternshipOverview(filters = {}) {
 
   if (!response.ok) {
     const message = data?.message || data?.error || 'Unable to fetch internship overview.';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
+export async function getInternshipYears() {
+  const response = await fetch(`${API_BASE_URL}${INTERNSHIPS_YEARS_ENDPOINT}`, {
+    method: 'GET',
+  });
+
+  const data = await parseJsonResponse(response);
+
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Unable to fetch internship years.';
+    throw new Error(message);
+  }
+
+  return data || { years: [] };
+}
+
+export async function getInternshipYearDetail(year) {
+  const response = await fetch(`${API_BASE_URL}${INTERNSHIPS_YEAR_DETAIL_ENDPOINT}/${year}/`, {
+    method: 'GET',
+  });
+
+  const data = await parseJsonResponse(response);
+
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Unable to fetch internship year details.';
     throw new Error(message);
   }
 
