@@ -317,44 +317,7 @@ export default function LandingPage() {
     { label: "Contact", href: "#contact" },
   ];
 
-  const statStripItems = [
-    {
-      icon: GraduationCap,
-      val: "845",
-      suffix: "+",
-      label: "Students Placed",
-      iconClass: "text-indigo-600",
-      bgClass: "bg-indigo-600/10",
-      borderClass: "lg:border-r lg:border-slate-200",
-    },
-    {
-      icon: Building2,
-      val: "78",
-      suffix: "+",
-      label: "Companies Visited",
-      iconClass: "text-emerald-600",
-      bgClass: "bg-emerald-600/10",
-      borderClass: "lg:border-r lg:border-slate-200",
-    },
-    {
-      icon: Award,
-      val: "36.5",
-      suffix: " LPA",
-      label: "Highest Package",
-      iconClass: "text-amber-500",
-      bgClass: "bg-amber-500/10",
-      borderClass: "lg:border-r lg:border-slate-200",
-    },
-    {
-      icon: TrendingUp,
-      val: "86.7",
-      suffix: "%",
-      label: "Placement Rate",
-      iconClass: "text-violet-600",
-      bgClass: "bg-violet-600/10",
-      borderClass: "",
-    },
-  ];
+  
 
   const milestoneItems = [
     {
@@ -616,33 +579,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            {statStripItems.map((item) => (
-              <div
-                key={item.label}
-                className={`flex flex-col items-center gap-2 border-b border-slate-200 px-8 py-9 text-center lg:border-b-0 ${item.borderClass}`}
-              >
-                <div
-                  className={`mb-1 flex h-11 w-11 items-center justify-center rounded-xl ${item.bgClass}`}
-                >
-                  <item.icon size={20} className={item.iconClass} />
-                </div>
-                <p className="m-0 text-[2.2rem] font-extrabold leading-none tracking-[-0.02em] text-slate-950">
-                  <AnimatedCounter target={item.val} suffix={item.suffix} />
-                </p>
-                <p className="m-0 text-[0.78rem] font-medium text-slate-500">
-                  {item.label}
-                </p>
-                <div
-                  className={`mt-0.5 h-0.5 w-7 rounded-full ${item.iconClass.replace("text-", "bg-")} opacity-50`}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
 
       <section id="overview" className="bg-[#faf9f7] px-6 py-24">
         <div className="mx-auto max-w-7xl">
