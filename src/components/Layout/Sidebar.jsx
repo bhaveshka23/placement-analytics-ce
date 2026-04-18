@@ -157,7 +157,9 @@ export default function Sidebar({ isOpen }) {
           <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Activities</p>
           <DropdownSection label="Activities" icon={Activity} defaultOpen={location.pathname.startsWith('/activities')}>
             <NavItem to="/activities/expert-talk">Expert Talk</NavItem>
+            <NavItem to="/activities/industrial-visit">Industrial Visits</NavItem>
           </DropdownSection>
+          
         </div>
 
        

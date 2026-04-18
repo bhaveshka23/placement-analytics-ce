@@ -8,7 +8,8 @@ import Companies from './pages/placements/Companies';
 import InternshipOverview from './pages/internships/InternshipOverview';
 import InternshipYear from './pages/internships/InternshipYear';
 import AdminAction from './pages/AdminAction';
-import ExpertTalk from './pages/activities/ExpertTalk' 
+import ExpertTalk from './pages/activities/ExpertTalk'
+import IndustrialVisit from './pages/activities/IndustrialVisit'
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('authToken');
@@ -105,6 +106,15 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ExpertTalk />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/activities/industrial-visit"
+            element={
+              <ProtectedRoute>
+                <IndustrialVisit />
               </ProtectedRoute>
             }
           />
