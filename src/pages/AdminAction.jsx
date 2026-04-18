@@ -4,12 +4,10 @@ import DashboardLayout from '../components/Layout/DashboardLayout';
 import { deletePlacement, getCompanies, lookupPlacement, updatePlacement, uploadPlacement } from '../services/placementsApi';
 import { deleteInternship, getInternshipCompanies, getInternshipMentors, lookupInternship, updateInternship, uploadInternship } from '../services/internshipsApi';
 
+
 const ACTION_LABELS = {
   upload: 'Upload Data',
   edit: 'Edit Data',
-  delete: 'Delete Data',
-  view: 'View Data',
-  add: 'Add Data',
 };
 
 const SCOPE_LABELS = {

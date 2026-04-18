@@ -282,11 +282,14 @@ export default function LandingPage() {
           .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
           .join(" ");
 
+        const isAdminValue =
+          response?.is_admin === true ||
+          response?.is_admin === 1 ||
+          response?.is_admin === 'true' ||
+          response?.is_admin === 'True';
+
         localStorage.setItem("authToken", response?.token || "");
-        localStorage.setItem(
-          "isAdmin",
-          response?.is_admin ? "true" : "false",
-        );
+        localStorage.setItem("isAdmin", isAdminValue ? "true" : "false");
         localStorage.setItem("userName", displayName);
         localStorage.setItem("userEmail", loginForm.email);
 

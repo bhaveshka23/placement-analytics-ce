@@ -153,13 +153,14 @@ export default function Sidebar({ isOpen }) {
           </DropdownSection>
         </div>
 
-        {/* <div className="pt-2">
+        <div className="pt-2">
           <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Activities</p>
           <DropdownSection label="Activities" icon={Activity} defaultOpen={location.pathname.startsWith('/activities')}>
-            <NavItem to="/activities/overview">Overview</NavItem>
-            {years.map(y => <NavItem key={y} to={`/activities/${y}`}>{y}</NavItem>)}
+            <NavItem to="/activities/expert-talk">Expert Talk</NavItem>
           </DropdownSection>
-        </div> */}
+        </div>
+
+       
 
         
 

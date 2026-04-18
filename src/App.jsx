@@ -8,6 +8,7 @@ import Companies from './pages/placements/Companies';
 import InternshipOverview from './pages/internships/InternshipOverview';
 import InternshipYear from './pages/internships/InternshipYear';
 import AdminAction from './pages/AdminAction';
+import ExpertTalk from './pages/activities/ExpertTalk' 
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('authToken');
@@ -96,6 +97,15 @@ export default function App() {
               <AdminRoute>
                 <AdminAction />
               </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/activities/expert-talk"
+            element={
+              <ProtectedRoute>
+                <ExpertTalk />
+              </ProtectedRoute>
             }
           />
 
