@@ -52,30 +52,7 @@ export default function Navbar({ onToggleSidebar }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="relative">
-          <button
-            onClick={() => setShowNotif(!showNotif)}
-            className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-500"
-          >
-            <Bell size={20} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-          {showNotif && (
-            <div className="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-              <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Notifications</p>
-              {[
-                { text: 'Google drive scheduled for Oct 15', time: '2h ago' },
-                { text: '42 students placed this week', time: '5h ago' },
-                { text: 'New company: Razorpay registered', time: '1d ago' },
-              ].map((n, i) => (
-                <div key={i} className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                  <p className="text-sm text-gray-700">{n.text}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{n.time}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        
 
         <div className="flex items-center gap-2 pl-3 border-l border-gray-200 rounded-lg px-2 py-1.5 transition-colors">
           <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
@@ -85,7 +62,7 @@ export default function Navbar({ onToggleSidebar }) {
             <p className="text-sm font-medium text-gray-700 leading-none">{userName}</p>
             <p className="text-xs text-gray-400 mt-0.5">{userRole}</p>
           </div>
-          <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
+          
         </div>
 
         <button

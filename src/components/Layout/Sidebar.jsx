@@ -8,6 +8,7 @@ import {
 import { getPlacementYears } from '../../services/placementsApi';
 import { getInternshipYears } from '../../services/internshipsApi';
 import { logoutUser } from '../../services/authApi';
+import logo from "../../assets/logo.png"
 
 function NavItem({ to, children, icon: Icon }) {
   return (
@@ -121,12 +122,12 @@ export default function Sidebar({ isOpen }) {
       {/* Logo */}
       <div className="h-16 flex items-center px-5 border-b border-gray-100 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <GraduationCap size={18} className="text-white" />
+          <div className="w-20 rounded-lg flex items-center justify-center">
+            <img src={logo}/>
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-800 leading-none">CE Dept</p>
-            <p className="text-xs text-gray-400 mt-0.5">Placement Portal</p>
+            <p className="text-sm font-bold text-gray-800 leading-none">Computer</p>
+            <p className="text-sm font-bold text-gray-800 mt-0.5">Engineering</p>
           </div>
         </div>
       </div>
@@ -161,11 +162,7 @@ export default function Sidebar({ isOpen }) {
           </DropdownSection>
           
         </div>
-
-       
-
         
-
         {isAdmin && (
           <div className="pt-2">
             <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Admin</p>
@@ -180,19 +177,12 @@ export default function Sidebar({ isOpen }) {
               <NavItem to="/admin/edit/internships">Internships</NavItem>
             </DropdownSection>
 
-            <button
-              onClick={handleLogout}
-              className="mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
-            >
-              <LogOut size={16} />
-              Logout
-            </button>
           </div>
         )}
       </nav>
 
       <div className="px-4 py-3 border-t border-gray-100 shrink-0">
-        <p className="text-xs text-gray-400 text-center">CE Dept © 2025</p>
+        <p className="text-xs text-gray-400 text-center">Computer Engineering Dept © 2026</p>
       </div>
     </aside>
   );
