@@ -1,4 +1,4 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "https://placement-backend-jmbs.onrender.com").replace(/\/$/, "");
 
 const ENDPOINTS = {
   studentSendOtp: "/api/v1/auth/student/send-otp/",
