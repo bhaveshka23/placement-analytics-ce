@@ -1,16 +1,14 @@
 import { useState, useMemo, useEffect } from "react";
 import DashboardLayout from "../../components/Layout/DashboardLayout";
 import {
-  User, BookOpen, MapPin, Calendar, Building2,
-  Trophy, Filter, X, Image, Award, Plus, Loader2, CheckCircle, Trash2,
+  Trophy, Users, MapPin, Calendar, Building2,
+  Filter, X, Crown, Loader2, Plus, CheckCircle, Trash2,
 } from "lucide-react";
-import { getStudentAchievements, createStudentAchievement, deleteStudentAchievement } from "../../services/achievementsApi";
-import { API_BASE_URL } from "../../services/authApi";
+import { getHackathons, createHackathon, deleteHackathon } from "../../services/achievementsApi";
 
-const NATURES  = ["All", "Technical", "Non-Technical"];
-const LEVELS   = ["All", "Department", "Institute", "University", "State", "National", "International"];
-const PRIZES   = ["All", "First", "Second", "Third", "Consolation", "Participation"];
-const CLASSES  = ["All", "FE", "SE", "TE", "BE"];
+const NATURES = ["All", "Hackathon", "Project Competition"];
+const LEVELS  = ["All", "Department", "Institute", "University", "State", "National", "International"];
+const PRIZES  = ["All", "First", "Second", "Third", "Consolation", "Participation"];
 
 const prizeConfig = {
   First:         { color: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: "🥇" },
@@ -29,47 +27,38 @@ const levelColor = {
   International: "bg-red-50 text-red-700",
 };
 
-const natureColor = {
-  "Technical":     "bg-violet-50 text-violet-700 border-violet-200",
-  "Non-Technical": "bg-teal-50 text-teal-700 border-teal-200",
-};
-
-
-export default function StudentAchievements() {
+export default function Hackathons() {
   const isAdmin = localStorage.getItem("isAdmin") === "true";
   const [natureFilter, setNatureFilter] = useState("All");
   const [levelFilter,  setLevelFilter]  = useState("All");
   const [prizeFilter,  setPrizeFilter]  = useState("All");
-  const [classFilter,  setClassFilter]  = useState("All");
   const [addModal,     setAddModal]     = useState(false);
-
-  const [achievements, setAchievements] = useState([]);
+  const [hackathons,   setHackathons]   = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [error,        setError]        = useState("");
 
-  const fetchAchievements = () => {
+  const fetchHackathons = () => {
     setLoading(true); setError("");
-    getStudentAchievements()
-      .then(setAchievements)
+    getHackathons()
+      .then(setHackathons)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchAchievements(); }, []);
+  useEffect(() => { fetchHackathons(); }, []);
 
-  const filtered = useMemo(() => achievements.filter(a => {
-    const natureMatch = natureFilter === "All" || a.nature === natureFilter;
-    const levelMatch  = levelFilter  === "All" || a.level  === levelFilter;
-    const prizeMatch  = prizeFilter  === "All" || a.prize  === prizeFilter;
-    const classMatch  = classFilter  === "All" || a.student_class === classFilter;
-    return natureMatch && levelMatch && prizeMatch && classMatch;
-  }), [achievements, natureFilter, levelFilter, prizeFilter, classFilter]);
-
-  const isFiltered = natureFilter !== "All" || levelFilter !== "All" || prizeFilter !== "All" || classFilter !== "All";
-  const reset = () => { setNatureFilter("All"); setLevelFilter("All"); setPrizeFilter("All"); setClassFilter("All"); };
+  const filtered = useMemo(() => hackathons.filter(h => {
+    const natureMatch = natureFilter === "All" || h.nature === natureFilter;
+    const levelMatch  = levelFilter  === "All" || h.level  === levelFilter;
+    const prizeMatch  = prizeFilter  === "All" || h.prize  === prizeFilter;
+    return natureMatch && levelMatch && prizeMatch;
+  }), [hackathons, natureFilter, levelFilter, prizeFilter]);
 
   const formatDate = (d) =>
     new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+
+  const reset = () => { setNatureFilter("All"); setLevelFilter("All"); setPrizeFilter("All"); };
+  const isFiltered = natureFilter !== "All" || levelFilter !== "All" || prizeFilter !== "All";
 
   return (
     <DashboardLayout>
@@ -78,8 +67,8 @@ export default function StudentAchievements() {
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Student Achievements</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Individual student achievements in technical and non-technical activities</p>
+            <h1 className="text-xl font-bold text-gray-900">Hackathons & Project Competitions</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Student achievements in hackathons and project competitions</p>
           </div>
           {isAdmin && (
             <button onClick={() => setAddModal(true)}
@@ -97,7 +86,6 @@ export default function StudentAchievements() {
               <span className="text-sm font-medium text-gray-500">Filters</span>
             </div>
             {[
-              { label: "Class",  value: classFilter,  set: setClassFilter,  options: CLASSES },
               { label: "Nature", value: natureFilter, set: setNatureFilter, options: NATURES },
               { label: "Level",  value: levelFilter,  set: setLevelFilter,  options: LEVELS },
               { label: "Prize",  value: prizeFilter,  set: setPrizeFilter,  options: PRIZES },
@@ -105,7 +93,7 @@ export default function StudentAchievements() {
               <div key={label} className="flex flex-col gap-0.5">
                 <label className="text-xs text-gray-400">{label}</label>
                 <select value={value} onChange={e => set(e.target.value)}
-                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-100 min-w-[130px]">
+                  className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-100 min-w-[150px]">
                   {options.map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
@@ -122,68 +110,66 @@ export default function StudentAchievements() {
           </div>
         </div>
 
-        {/* Cards */}
+        {/* States */}
         {loading && (
           <div className="flex items-center justify-center py-16 gap-3 text-gray-400">
             <Loader2 size={20} className="animate-spin" />
-            <span className="text-sm">Loading achievements...</span>
+            <span className="text-sm">Loading hackathons...</span>
           </div>
         )}
         {error && !loading && (
           <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-sm text-red-600 text-center">{error}</div>
         )}
-        {!loading && !error && filtered.length === 0 ? (
+        {!loading && !error && filtered.length === 0 && (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center">
-            <p className="text-gray-400 text-sm">No achievements found for the selected filters.</p>
+            <p className="text-gray-400 text-sm">No hackathons found for the selected filters.</p>
           </div>
-        ) : (
-          !loading && !error && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {filtered.map(a => (
-                <AchievementCard key={a.id} a={a}
-                  isAdmin={isAdmin}
-                  onDelete={() => deleteStudentAchievement(a.id).then(fetchAchievements).catch(e => alert(e.message))}
-                  formatDate={formatDate} />
-              ))}
-            </div>
-          )
+        )}
+        {!loading && !error && filtered.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {filtered.map(h => (
+              <HackathonCard key={h.id} h={h}
+                isAdmin={isAdmin}
+                onDelete={() => deleteHackathon(h.id).then(fetchHackathons).catch(e => alert(e.message))}
+                formatDate={formatDate} />
+            ))}
+          </div>
         )}
       </div>
 
     
+
+      {/* Add modal */}
       {addModal && (
-        <AddAchievementModal onClose={() => setAddModal(false)} onCreated={fetchAchievements} />
+        <AddHackathonModal onClose={() => setAddModal(false)} onCreated={fetchHackathons} />
       )}
     </DashboardLayout>
   );
 }
 
-function AchievementCard({ a, isAdmin, onDelete, formatDate }) {
-  const prize    = prizeConfig[a.prize]  ?? prizeConfig.Participation;
-  const lvlColor = levelColor[a.level]   ?? "bg-gray-100 text-gray-600";
-  const natColor = natureColor[a.nature] ?? "bg-gray-50 text-gray-600 border-gray-200";
+function HackathonCard({ h, formatDate, isAdmin, onDelete }) {
+  const prize    = prizeConfig[h.prize]  ?? prizeConfig.Participation;
+  const lvlColor = levelColor[h.level]   ?? "bg-gray-100 text-gray-600";
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
       <div className="h-1 w-full bg-indigo-500" />
       <div className="p-5">
+
+        {/* Heading */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="min-w-0">
-            <h3 className="text-base font-bold text-gray-900 leading-snug">{a.activity_name}</h3>
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${natColor}`}>{a.nature}</span>
+            <h3 className="text-base font-bold text-gray-900 leading-snug">{h.hackathon_name}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs text-gray-500">{h.nature}</span>
               <span className="text-gray-300">·</span>
-              <span className="text-xs font-semibold text-gray-700 flex items-center gap-1">
-                <User size={11} className="text-gray-400" /> {a.student_name}
-              </span>
-              <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded border border-indigo-100">{a.student_class}</span>
-              <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded border border-gray-200">Div {a.division}</span>
+              <span className="text-xs font-semibold text-indigo-600">Team: {h.team_name}</span>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1 shrink-0">
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${lvlColor}`}>{a.level}</span>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${lvlColor}`}>{h.level}</span>
             <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${prize.color}`}>
-              {prize.icon} {a.prize}
+              {prize.icon} {h.prize}
             </span>
             {isAdmin && (
               <button onClick={onDelete}
@@ -194,42 +180,78 @@ function AchievementCard({ a, isAdmin, onDelete, formatDate }) {
           </div>
         </div>
 
+        {/* Details */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-3">
-          <Detail icon={Building2} label="Organized by" value={a.organized_by} />
-          <Detail icon={MapPin}    label="Venue"        value={a.venue} />
-          <Detail icon={Calendar}  label="Date"         value={formatDate(a.date)} />
-          <Detail icon={Trophy}    label="Remark"       value={a.remark} />
+          <Detail icon={Building2} label="Organized by" value={h.organized_by} />
+          <Detail icon={MapPin}    label="Venue"        value={h.venue} />
+          <Detail icon={Calendar}  label="Date"         value={formatDate(h.date)} />
+          <Detail icon={Trophy}    label="Remark"       value={h.remark || "—"} />
         </div>
 
+        {/* Problem statement */}
         <div className="bg-gray-50 rounded-xl px-3 py-2.5 mb-4 border border-gray-100">
-          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mb-1 flex items-center gap-1">
-            <BookOpen size={10} /> Problem Statement / Description
-          </p>
-          <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">{a.problem_statement}</p>
+          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mb-1">Problem Statement</p>
+          <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">{h.problem_statement}</p>
         </div>
+
+        {/* Team members inline */}
+        <div className="border border-gray-100 rounded-xl overflow-hidden">
+          <div className="bg-gray-50 px-3 py-2 border-b border-gray-100 flex items-center gap-1.5">
+            <Users size={12} className="text-gray-400" />
+            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+              Team: {h.team_name} · {(h.team_members ?? []).length} member{(h.team_members ?? []).length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {(h.team_members ?? []).length === 0 ? (
+              <p className="text-xs text-gray-400 px-3 py-2">No members added.</p>
+            ) : (
+              (h.team_members ?? []).map((m, i) => (
+                <div key={i} className={`flex items-center justify-between px-3 py-2 ${
+                  m.name === h.team_leader ? "bg-indigo-50" : "bg-white"
+                }`}>
+                  <div className="flex items-center gap-1.5">
+                    {m.name === h.team_leader && <Crown size={11} className="text-indigo-600 shrink-0" />}
+                    <span className="text-xs font-medium text-gray-800">{m.name}</span>
+                    {m.name === h.team_leader && (
+                      <span className="text-[9px] font-bold text-indigo-600 bg-indigo-100 px-1.5 py-0.5 rounded">Leader</span>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">{m.student_class}</span>
+                    <span className="text-[10px] font-bold bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded border border-gray-200">Div {m.division}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );
 }
 
-function AddAchievementModal({ onClose, onCreated }) {
-  const NATURE_OPTS = ["Technical", "Non-Technical"];
-  const LEVEL_OPTS  = ["Department", "Institute", "University", "State", "National", "International"];
-  const PRIZE_OPTS  = ["First", "Second", "Third", "Consolation", "Participation"];
-  const CLASS_OPTS  = ["FE", "SE", "TE", "BE"];
+function AddHackathonModal({ onClose, onCreated }) {
+  const NATURES = ["Hackathon", "Project Competition"];
+  const LEVELS  = ["Department", "Institute", "University", "State", "National", "International"];
+  const PRIZES  = ["First", "Second", "Third", "Consolation", "Participation"];
 
   const [submitted, setSubmitted] = useState(false);
   const [loading,   setLoading]   = useState(false);
   const [apiError,  setApiError]  = useState("");
+  const [members,   setMembers]   = useState([{ name: "", student_class: "", division: "" }]);
   const [form, setForm] = useState({
-    student_name: "", student_class: "BE", division: "",
-    nature: "Technical", activity_name: "",
-    level: "Institute", organized_by: "", venue: "",
-    date: "", problem_statement: "",
+    hackathon_name: "", team_name: "", team_leader: "",
+    nature: "Hackathon", level: "Institute", organized_by: "",
+    venue: "", date: "", problem_statement: "",
     prize: "Participation", remark: "",
   });
 
   const set = (f, v) => setForm(p => ({ ...p, [f]: v }));
+  const updateMember = (i, f, v) => setMembers(ms => ms.map((m, idx) => idx === i ? { ...m, [f]: v } : m));
+  const addMember    = () => setMembers(ms => [...ms, { name: "", student_class: "", division: "" }]);
+  const removeMember = (i) => setMembers(ms => ms.filter((_, idx) => idx !== i));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -237,8 +259,12 @@ function AddAchievementModal({ onClose, onCreated }) {
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
-
-      await createStudentAchievement(fd);
+      members.forEach((m, i) => {
+        fd.append(`team_members[${i}][name]`, m.name);
+        fd.append(`team_members[${i}][student_class]`, m.student_class);
+        fd.append(`team_members[${i}][division]`, m.division);
+      });
+      await createHackathon(fd);
       onCreated?.();
       setSubmitted(true);
     } catch (err) { setApiError(err.message); }
@@ -254,7 +280,7 @@ function AddAchievementModal({ onClose, onCreated }) {
         <div className="flex items-center justify-between p-5 border-b border-gray-100 shrink-0">
           <div>
             <p className="text-xs font-semibold text-indigo-600 uppercase tracking-wider mb-1">Admin</p>
-            <h2 className="text-base font-bold text-gray-900">Add Student Achievement</h2>
+            <h2 className="text-base font-bold text-gray-900">Add Hackathon / Competition</h2>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
@@ -262,44 +288,38 @@ function AddAchievementModal({ onClose, onCreated }) {
         {submitted ? (
           <div className="p-10 flex flex-col items-center gap-3 text-center">
             <CheckCircle size={48} className="text-emerald-500" />
-            <p className="text-lg font-bold text-gray-900">Achievement Added!</p>
-            <p className="text-sm text-gray-500">The student achievement has been saved successfully.</p>
+            <p className="text-lg font-bold text-gray-900">Entry Added!</p>
+            <p className="text-sm text-gray-500">The hackathon entry has been saved successfully.</p>
             <button onClick={onClose} className="mt-2 bg-indigo-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors">Done</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 p-5 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2">
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Hackathon / Competition Name</label>
+                <input required value={form.hackathon_name} onChange={e => set("hackathon_name", e.target.value)}
+                  placeholder="e.g. Smart India Hackathon 2026" className={inputCls} />
+              </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Student Name</label>
-                <input required value={form.student_name} onChange={e => set("student_name", e.target.value)}
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Team Name</label>
+                <input required value={form.team_name} onChange={e => set("team_name", e.target.value)}
+                  placeholder="e.g. CodeStorm" className={inputCls} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Team Leader</label>
+                <input required value={form.team_leader} onChange={e => set("team_leader", e.target.value)}
                   placeholder="e.g. Anjali Sharma" className={inputCls} />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Class</label>
-                <select value={form.student_class} onChange={e => set("student_class", e.target.value)} className={selectCls}>
-                  {CLASS_OPTS.map(c => <option key={c}>{c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Division</label>
-                <input required value={form.division} onChange={e => set("division", e.target.value)}
-                  placeholder="e.g. A" className={inputCls} />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">Nature</label>
                 <select value={form.nature} onChange={e => set("nature", e.target.value)} className={selectCls}>
-                  {NATURE_OPTS.map(n => <option key={n}>{n}</option>)}
+                  {NATURES.map(n => <option key={n}>{n}</option>)}
                 </select>
-              </div>
-              <div className="sm:col-span-2">
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Activity Name</label>
-                <input required value={form.activity_name} onChange={e => set("activity_name", e.target.value)}
-                  placeholder="e.g. Paper Presentation – AI in Healthcare" className={inputCls} />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">Level</label>
                 <select value={form.level} onChange={e => set("level", e.target.value)} className={selectCls}>
-                  {LEVEL_OPTS.map(l => <option key={l}>{l}</option>)}
+                  {LEVELS.map(l => <option key={l}>{l}</option>)}
                 </select>
               </div>
               <div>
@@ -319,18 +339,49 @@ function AddAchievementModal({ onClose, onCreated }) {
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">Prize</label>
                 <select value={form.prize} onChange={e => set("prize", e.target.value)} className={selectCls}>
-                  {PRIZE_OPTS.map(p => <option key={p}>{p}</option>)}
+                  {PRIZES.map(p => <option key={p}>{p}</option>)}
                 </select>
               </div>
-              <div>
+              <div className="sm:col-span-2">
                 <label className="text-xs font-medium text-gray-600 mb-1 block">Remark</label>
                 <input value={form.remark} onChange={e => set("remark", e.target.value)}
-                  placeholder="e.g. Cash prize ₹10,000 + Certificate" className={inputCls} />
+                  placeholder="e.g. Cash prize ₹25,000 + Trophy" className={inputCls} />
               </div>
               <div className="sm:col-span-2">
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Problem Statement / Description</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">Problem Statement</label>
                 <textarea required value={form.problem_statement} onChange={e => set("problem_statement", e.target.value)}
-                  rows={3} placeholder="Describe the activity..." className={`${inputCls} resize-none`} />
+                  rows={3} placeholder="Describe the problem statement..." className={`${inputCls} resize-none`} />
+              </div>
+
+              {/* Team Members */}
+              <div className="sm:col-span-2">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-medium text-gray-600">Team Members</label>
+                  <button type="button" onClick={addMember}
+                    className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
+                    <Plus size={12} /> Add Member
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {members.map((m, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input value={m.name} onChange={e => updateMember(i, "name", e.target.value)}
+                        placeholder="Name" required
+                        className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                      <input value={m.student_class} onChange={e => updateMember(i, "student_class", e.target.value)}
+                        placeholder="Class" required
+                        className="w-20 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                      <input value={m.division} onChange={e => updateMember(i, "division", e.target.value)}
+                        placeholder="Div" required
+                        className="w-16 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                      {members.length > 1 && (
+                        <button type="button" onClick={() => removeMember(i)} className="text-red-400 hover:text-red-600 shrink-0">
+                          <X size={15} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -351,7 +402,6 @@ function AddAchievementModal({ onClose, onCreated }) {
     </div>
   );
 }
-
 
 function Detail({ icon: Icon, label, value }) {
   return (

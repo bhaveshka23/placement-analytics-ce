@@ -160,7 +160,14 @@ export default function Sidebar({ isOpen }) {
             <NavItem to="/activities/expert-talk">Expert Talk</NavItem>
             <NavItem to="/activities/industrial-visit">Industrial Visits</NavItem>
           </DropdownSection>
-          
+        </div>
+
+        <div className="pt-2">
+          <p className="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Achievements</p>
+          <DropdownSection label="Achievements" icon={GraduationCap} defaultOpen={location.pathname.startsWith('/achievements')}>
+            <NavItem to="/achievements/hackathons">Hackathons</NavItem>
+            <NavItem to="/achievements/students">Student Achievements</NavItem>
+          </DropdownSection>
         </div>
         
         {isAdmin && (

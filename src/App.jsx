@@ -10,6 +10,8 @@ import InternshipYear from './pages/internships/InternshipYear';
 import AdminAction from './pages/AdminAction';
 import ExpertTalk from './pages/activities/ExpertTalk'
 import IndustrialVisit from './pages/activities/IndustrialVisit'
+import Hackathons from "./pages/achivements/Hackathons"
+import StudentAchievements from "./pages/achivements/StudentAchivements"
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('authToken');
@@ -115,6 +117,24 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <IndustrialVisit />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/achievements/hackathons"
+            element={
+              <ProtectedRoute>
+                <Hackathons />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/achievements/students"
+            element={
+              <ProtectedRoute>
+                <StudentAchievements />
               </ProtectedRoute>
             }
           />
