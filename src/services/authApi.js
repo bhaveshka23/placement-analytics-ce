@@ -1,12 +1,13 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "https://placement-portal-api-egeverhpd4hqg8ae.southeastasia-01.azurewebsites.net/").replace(/\/$/, "");
-// const API_BASE_URL = "http://127.0.0.1:8000"
+//const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "https://placement-portal-api-egeverhpd4hqg8ae.southeastasia-01.azurewebsites.net/").replace(/\/$/, "");
+const API_BASE_URL = "http://127.0.0.1:8000"
 const ENDPOINTS = {
   studentSendOtp: "/api/v1/auth/student/send-otp/",
   studentVerifyOtp: "/api/v1/auth/student/verify-otp/",
   adminLogin: "/api/v1/auth/admin/login/",
   adminVerifyOtp: "/api/v1/auth/admin/verify-otp/",
   logout: "/api/v1/auth/logout/",
-  dashboard: "/api/v1/analytics/dashboard/"
+  dashboard: "/api/v1/analytics/dashboard/",
+  externalViewer : "/api/v1/auth/user/external-viewer/"
 };
 
 async function parseJsonResponse(response) {
@@ -58,6 +59,12 @@ export function logoutUser() {
   return postJson(ENDPOINTS.logout, {});
 }
 
+export function externalViewerLogin({ email, password }) {
+  return postJson(ENDPOINTS.externalViewer, {
+    email,
+    password,
+  });
+}
 
 export async function getDashboardUser() {
   const response = await fetch(`${API_BASE_URL}${ENDPOINTS.dashboard}`, {

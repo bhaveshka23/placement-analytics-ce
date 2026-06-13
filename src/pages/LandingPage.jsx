@@ -13,6 +13,7 @@ import {
   Phone,
   TrendingUp,
   X,
+  Info
 } from "lucide-react";
 import {
   Bar,
@@ -31,6 +32,7 @@ import {
   adminVerifyOtp,
   studentSendOtp,
   studentVerifyOtp,
+  externalViewerLogin,  
 } from "../services/authApi";
 import logo from "/kkw-logo.png";
 
@@ -253,6 +255,30 @@ export default function LandingPage() {
     setLoginNotice("");
 
     try {
+      // 👇 External Viewer direct login (no OTP)
+      if (loginForm.role === "external") {
+        const response = await externalViewerLogin({
+          email: loginForm.email,
+          password: loginForm.password,
+        });
+
+        const emailName = loginForm.email.split("@")[0] || "Viewer";
+        const displayName = emailName
+          .split(".")
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(" ");
+
+        localStorage.setItem("authToken", response?.token || "");
+        localStorage.setItem("isAdmin", "false");   // external is not admin
+        localStorage.setItem("userName", displayName);
+        localStorage.setItem("userEmail", loginForm.email);
+
+        closeLogin();
+        navigate("/dashboard");
+        return;
+      }
+
+      // 👇 Existing student / admin flow
       if (loginStep === "request") {
         if (loginForm.role === "student") {
           await studentSendOtp({ email: loginForm.email });
@@ -267,14 +293,8 @@ export default function LandingPage() {
       } else {
         const response =
           loginForm.role === "student"
-            ? await studentVerifyOtp({
-                email: loginForm.email,
-                otp,
-              })
-            : await adminVerifyOtp({
-                email: loginForm.email,
-                otp,
-              });
+            ? await studentVerifyOtp({ email: loginForm.email, otp })
+            : await adminVerifyOtp({ email: loginForm.email, otp });
 
         const emailName = loginForm.email.split("@")[0] || "User";
         const displayName = emailName
@@ -285,8 +305,8 @@ export default function LandingPage() {
         const isAdminValue =
           response?.is_admin === true ||
           response?.is_admin === 1 ||
-          response?.is_admin === 'true' ||
-          response?.is_admin === 'True';
+          response?.is_admin === "true" ||
+          response?.is_admin === "True";
 
         localStorage.setItem("authToken", response?.token || "");
         localStorage.setItem("isAdmin", isAdminValue ? "true" : "false");
@@ -990,125 +1010,127 @@ export default function LandingPage() {
             </div>
 
             <form className="space-y-4 px-6 py-6" onSubmit={onLoginSubmit}>
-              <div>
-                <label
-                  htmlFor="role"
-                  className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
-                >
-                  Select Role
-                </label>
-                <div className="relative">
-                  <select
-                    id="role"
-                    name="role"
-                    value={loginForm.role}
-                    onChange={onLoginChange}
-                    className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  >
-                    <option value="student">Student</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                  <ChevronDown
-                    size={16}
-                    className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-                </div>
-              </div>
+  {/* Role select */}
+  <div>
+    <label htmlFor="role" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+      Select Role
+    </label>
+    <div className="relative">
+      <select
+        id="role"
+        name="role"
+        value={loginForm.role}
+        onChange={onLoginChange}
+        className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+      >
+        <option value="student">Student</option>
+        <option value="admin">Admin</option>
+        <option value="external">External Viewer</option>
+      </select>
+      <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+    </div>
+  </div>
 
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
-                >
-                  Email Address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={loginForm.email}
-                  onChange={onLoginChange}
-                  placeholder="you@kkw.edu.in"
-                  required
-                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                />
-                <p className="mt-2 text-xs font-medium text-slate-500">
-                  Only @kkwagh.edu.in email IDs are allowed.
-                </p>
-              </div>
+  {/* Email */}
+  <div>
+    <label htmlFor="email" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+      Email Address
+    </label>
+    <input
+      id="email"
+      name="email"
+      type="email"
+      value={loginForm.email}
+      onChange={onLoginChange}
+      placeholder={loginForm.role === "external" ? "demo@placementanalytics.com" : "you@kkw.edu.in"}
+      required
+      className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+    />
+    {loginForm.role === "student" && (
+      <p className="mt-2 text-xs font-medium text-slate-500">Only @kkwagh.edu.in email IDs are allowed.</p>
+    )}
+  </div>
 
-              {loginForm.role === "admin" && loginStep === "request" && (
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
-                  >
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    value={loginForm.password}
-                    onChange={onLoginChange}
-                    placeholder="Enter your password"
-                    required
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
-              )}
+  {/* Password for admin & external */}
+  {(loginForm.role === "admin" || loginForm.role === "external") && (
+    <div>
+      <label htmlFor="password" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+        Password
+      </label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        value={loginForm.password}
+        onChange={onLoginChange}
+        placeholder="Enter your password"
+        required
+        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+      />
+    </div>
+  )}
 
-              {loginStep === "verify" && (
-                <div>
-                  <label
-                    htmlFor="otp"
-                    className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500"
-                  >
-                    OTP Code
-                  </label>
-                  <input
-                    id="otp"
-                    name="otp"
-                    type="text"
-                    value={otp}
-                    onChange={(event) => setOtp(event.target.value)}
-                    placeholder="Enter the OTP"
-                    required
-                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  />
-                </div>
-              )}
+  {/* 👇 External viewer demo credentials note */}
+  {loginForm.role === "external" && (
+    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs">
+      <div className="flex items-start gap-2">
+        <Info size={14} className="mt-0.5 text-blue-600 shrink-0" />
+        <div className="space-y-1">
+          <p className="font-semibold text-blue-800">Demo credentials for external viewing:</p>
+          <p className="text-blue-700 break-all">
+            <span className="font-mono font-medium">Email:</span> demo@placementanalytics.com<br />
+            <span className="font-mono font-medium">Password:</span> Demo@123
+          </p>
+          <p className="text-blue-600/80 text-[0.7rem] mt-1">Use these to explore the dashboard in read-only mode.</p>
+        </div>
+      </div>
+    </div>
+  )}
 
-              {loginError && (
-                <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
-                  {loginError}
-                </div>
-              )}
+  {/* OTP for student/admin verify step */}
+  {loginStep === "verify" && loginForm.role !== "external" && (
+    <div>
+      <label htmlFor="otp" className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+        OTP Code
+      </label>
+      <input
+        id="otp"
+        name="otp"
+        type="text"
+        value={otp}
+        onChange={(e) => setOtp(e.target.value)}
+        placeholder="Enter the OTP"
+        required
+        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+      />
+    </div>
+  )}
 
-              {loginNotice && (
-                <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700">
-                  {loginNotice}
-                </div>
-              )}
+  {/* Error & notice */}
+  {loginError && <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">{loginError}</div>}
+  {loginNotice && <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700">{loginNotice}</div>}
 
-              <button
-                type="submit"
-                disabled={loginLoading}
-                className={`w-full rounded-lg px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_12px_28px_rgba(37,99,235,0.3)] transition-all duration-200 ${
-                  loginLoading
-                    ? "cursor-not-allowed bg-blue-400"
-                    : "bg-blue-600 hover:-translate-y-0.5 hover:bg-blue-700"
-                }`}
-              >
-                {loginLoading
-                  ? loginStep === "request"
-                    ? "Sending..."
-                    : "Verifying..."
-                  : loginStep === "request"
-                    ? "Get OTP"
-                    : "Verify OTP"}
-              </button>
-            </form>
+  {/* Submit button */}
+  <button
+    type="submit"
+    disabled={loginLoading}
+    className={`w-full rounded-lg px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-white shadow-[0_12px_28px_rgba(37,99,235,0.3)] transition-all duration-200 ${
+      loginLoading ? "cursor-not-allowed bg-blue-400" : "bg-blue-600 hover:-translate-y-0.5 hover:bg-blue-700"
+    }`}
+  >
+    {loginLoading
+      ? loginForm.role === "external"
+        ? "Logging in..."
+        : loginStep === "request"
+        ? "Sending..."
+        : "Verifying..."
+      : loginForm.role === "external"
+      ? "Login"
+      : loginStep === "request"
+      ? "Get OTP"
+      : "Verify OTP"}
+  </button>
+</form>
           </div>
         </div>
       )}
